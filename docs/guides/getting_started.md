@@ -6,7 +6,7 @@ Download and Install:
 ## Installation
 Clone terraform-provider-lumen-technologies from github:
 ```shell
-$ git clone https://github.com/CenturyLink/terraform-provider-lumen-technologies.git
+$ git clone https://github.com/LumenTech/terraform-provider-lumen-technologies.git
 ```
 
 ## Setup and install Lumen Terraform Provider
