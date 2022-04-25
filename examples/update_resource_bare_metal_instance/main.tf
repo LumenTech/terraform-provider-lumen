@@ -27,4 +27,3 @@ resource "lumen_bare_metal_instance" "tf_test" {
 output "tf_test_instance" {
     value = lumen_bare_metal_instance.tf_test
 }
-

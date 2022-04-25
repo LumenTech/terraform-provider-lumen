@@ -4,7 +4,7 @@ HOSTNAME=lumen.com
 NAMESPACE=edge
 NAME=lumen-technologies
 BINARY=terraform-provider-${NAME}
-VERSION=0.3.0
+VERSION=0.3.1
 OS=$(shell go env GOOS)
 OS_ARCH=$(shell go env GOARCH)
 INSTALL_PATH=~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/linux_$(OS_ARCH)
@@ -42,7 +42,7 @@ release:
 	GOOS=windows GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_windows_386
 	GOOS=windows GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_windows_amd64
 
-install: clean build setup
+install: build setup
 	mkdir -p $(INSTALL_PATH)
 	mv ${BINARY} $(INSTALL_PATH)
 
@@ -51,7 +51,7 @@ fmt:
 	gofmt -s -w ./lumen
 
 fmtcheck:
-	bash scripts/gofmtcheck.sh
+	bash -x scripts/gofmtcheck.sh
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1                                                   
@@ -62,8 +62,8 @@ testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 clean:
-	bash scripts/cleanup.sh
+	bash -x scripts/cleanup.sh
 
 setup:
-	bash scripts/setup.sh
+	bash -x scripts/setup.sh
 

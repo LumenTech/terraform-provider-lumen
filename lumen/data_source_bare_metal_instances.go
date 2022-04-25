@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gomorpheus/morpheus-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -97,19 +96,19 @@ func DataSourceBareMetalAllInstancesRead(
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
 
-	// Initializing morpheus client
-	c := m.(*morpheus.Client)
+	// Initializing client
+	c := m.(*Client)
 
 	var diags diag.Diagnostics
 
 	// List instance call
-	resp, err := c.ListInstances(&morpheus.Request{})
+	resp, err := c.ListInstances(&Request{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	// List of instances
-	instances := resp.Result.(*morpheus.ListInstancesResult)
+	instances := resp.Result.(*ListInstancesResult)
 
 	// Flattening response to fit schema
 	instanceItems := FlattenInstances(instances.Instances)
@@ -127,7 +126,7 @@ func DataSourceBareMetalAllInstancesRead(
 	return diags
 }
 
-func FlattenInstances(instanceList *[]morpheus.Instance) []interface{} {
+func FlattenInstances(instanceList *[]Instance) []interface{} {
 	if instanceList != nil {
 		instances := make([]interface{}, len(*instanceList), len(*instanceList))
 

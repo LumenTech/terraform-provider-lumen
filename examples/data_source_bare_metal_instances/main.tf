@@ -5,4 +5,3 @@ data "lumen_bare_metal_instances" "all" {}
 output "all_instances" {
   value = data.lumen_bare_metal_instances.all.instances
 }
-

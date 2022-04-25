@@ -70,10 +70,12 @@ output "tf_test_instance" {
 ## Terraform Input Variables
 `variables.tf`
 ### Required
-- "lumen_api_url" : "Lumen API url"
-- "lumen_access_token" : "Lumen user token (user should have API access)"
-- "lumen_username" : "Lumen username (user should have API access, optional)"
-- "lumen_password" : "Lumen password" (optional)
+- lumen_api_url "Lumen API endpoint"
+- lumen_auth_url "Lumen user authentication url"
+- lumen_username "Lumen username"
+- lumen_password "Lumen password"
+- lumen_api_access_token "Lumen Api access token"
+- lumen_api_refresh_token "Lumen Api refresh token"
 - "instance_name" : "Instance name" (String)
 - "instance_description" : "Lumen instance description" (String)
 - "group_id" : "Instance group id" (Integer)
@@ -94,10 +96,12 @@ Each of the variables are defined in `terraform.tfvars`. Details related to `gro
 `terraform.tfvars`
 ```hcl
 # Url and credentials
-lumen_api_url = "https://api.lumen.com/EdgeServices/v1/Compute/api/instances"
-lumen_username = null
-lumen_password = null
-lumen_access_token = "0000-0000-0000-0000"
+lumen_api_url = "https://api.lumen.com/EdgeServices/v1/Compute"
+lumen_auth_url = "https://api.lumen.com/oauth/v1/token"
+lumen_username = $consumer_key
+lumen_password = $consumer_secret
+lumen_api_access_token = $lumen_api_access_token
+lumen_api_refresh_token = $lumen_api_refresh_token
 
 # Instance name
 instance_name = "tf-test"

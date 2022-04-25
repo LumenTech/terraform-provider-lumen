@@ -1,13 +1,13 @@
 
 # Terraform Provider Lumen Technologies
-This is the Terraform Provider for Lumen Bare Metal Management Platform. It interfaces with the Lumen API using [morpheus-go-sdk](https://github.com/gomorpheus/morpheus-go-sdk) client. Developed in Go.
+This is the Terraform Provider for Lumen Bare Metal Management Platform. It interfaces with the Lumen API client. Developed in Go.
 
 - Lumen API doc: (http://apidocs.edge.lumen.com/)
 
 
 ## Requirements
-- [Terraform](https://www.terraform.io/downloads) >= 1.1.5
-- [Golang](https://go.dev/doc/install) >= 1.17.5
+- [Terraform](https://www.terraform.io/downloads) >= 1.1.8
+- [Golang](https://go.dev/doc/install) >= 1.18.1
 
 ## Getting Started
 To get started follow the guidelines provided in [getting started](./docs/guides/getting_started.md)

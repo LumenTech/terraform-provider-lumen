@@ -4,7 +4,7 @@
 
 - Guides
     - [Authentication](guides/authentication.md) : API key generation to access Lumen API endpoint.
-    - [Installation/Setup/Configuration](guides/installation_setup.md) : Setup, Installation and Configurations of Lumen Terraform provider.
+    - [Installation/Setup/Configuration](guides/getting_started.md) : Setup, Installation and Configurations of Lumen Terraform provider.
     - [Acceptance_Testing](acceptance-testing/acceptance-testing.md) : Guidance on acceptance testing.
 - Provider
     - [Provider](provider/provider.md) : Lumen Terraform provider and setup.
