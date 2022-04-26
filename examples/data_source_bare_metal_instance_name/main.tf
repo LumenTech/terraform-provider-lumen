@@ -8,4 +8,3 @@ data "lumen_bare_metal_instance_name" "instance" {
 output "instance" {
     value = data.lumen_bare_metal_instance_name.instance
 }
-

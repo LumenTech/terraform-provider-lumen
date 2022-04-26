@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gomorpheus/morpheus-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -256,7 +255,7 @@ func ResourceBareMetalInstanceCreate(
 	var err error
 
 	// Initializing client
-	c := m.(*morpheus.Client)
+	c := m.(*Client)
 
 	// Getting instance name, cloud, and group id
 	instancename := d.Get("name").(string)
@@ -363,13 +362,13 @@ func ResourceBareMetalInstanceCreate(
 		payload["volumes"] = parseStorageVolumes(d.Get("volumes").([]interface{}))
 	}
 
-	req := &morpheus.Request{Body: payload}
+	req := &Request{Body: payload}
 	//slcB, _ := json.Marshal(req.Body)
 	resp, err := c.CreateInstance(req)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	instanceresult := resp.Result.(*morpheus.CreateInstanceResult)
+	instanceresult := resp.Result.(*CreateInstanceResult)
 	instanceDetails := instanceresult.Instance
 
 	// Instance state confirmation
@@ -378,19 +377,19 @@ func ResourceBareMetalInstanceCreate(
 		Target:  []string{"running", "failed", "warning"},
 		Refresh: func() (interface{}, string, error) {
 			instancedetails, err := c.GetInstance(
-				instanceDetails.ID, &morpheus.Request{})
+				instanceDetails.ID, &Request{})
 			if err != nil {
 				return "", "", err
 			}
-			result := instancedetails.Result.(*morpheus.GetInstanceResult)
+			result := instancedetails.Result.(*GetInstanceResult)
 			instance := result.Instance
 			return result, instance.Status, nil
 
 		},
 		Timeout:      3 * time.Hour,
 		MinTimeout:   10 * time.Minute,
-		Delay:        2 * time.Minute,
-		PollInterval: 1 * time.Minute,
+		Delay:        4 * time.Minute,
+		PollInterval: 3 * time.Minute,
 	}
 	// Checking instance state to catch any errors
 	_, err = instanceStateConf.WaitForStateContext(ctx)
@@ -415,19 +414,21 @@ func ResourceBareMetalInstanceRead(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
-	c := m.(*morpheus.Client)
 
 	// declaring variables
 	var diags diag.Diagnostics
-	var resp *morpheus.Response
+	var resp *Response
 	var err error
+
+	// Initializing client
+	c := m.(*Client)
 
 	instanceid := d.Id()
 	instancename := d.Get("name").(string)
 	if instanceid == "" && instancename != "" {
 		resp, err = c.FindInstanceByName(instancename)
 	} else if instanceid != "" {
-		resp, err = c.GetInstance(toInt64(instanceid), &morpheus.Request{})
+		resp, err = c.GetInstance(toInt64(instanceid), &Request{})
 	} else {
 		return diag.Errorf(
 			"INFO: Instance details cannot be retrieved without id or name")
@@ -442,7 +443,7 @@ func ResourceBareMetalInstanceRead(
 	}
 
 	// Storing resource data
-	result := resp.Result.(*morpheus.GetInstanceResult)
+	result := resp.Result.(*GetInstanceResult)
 	instanceDetails := result.Instance
 	if instanceDetails == nil {
 		return diag.Errorf("ERROR: Instance details not retrieved in response data")
@@ -514,14 +515,14 @@ func ResourceBareMetalInstanceDelete(
 
 	// To collect errors, response and warnings
 	var diags diag.Diagnostics
-	var resp *morpheus.Response
+	var resp *Response
 	var err error
 
-	// Initializing morpheus client
-	c := m.(*morpheus.Client)
+	// Initializing client
+	c := m.(*Client)
 
 	instanceid := d.Id()
-	morphRequest := &morpheus.Request{
+	morphRequest := &Request{
 		QueryParams: map[string]string{},
 	}
 
@@ -551,7 +552,7 @@ func ResourceBareMetalInstanceUpdate(
 	var err error
 
 	// Initializing client
-	c := m.(*morpheus.Client)
+	c := m.(*Client)
 
 	id := d.Id()
 
@@ -621,13 +622,13 @@ func ResourceBareMetalInstanceUpdate(
 	payload["instance"] = instancePayload
 
 	// API request
-	morphRequest := &morpheus.Request{Body: payload}
+	morphRequest := &Request{Body: payload}
 	resp, err := c.UpdateInstance(toInt64(id), morphRequest)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	updateInstanceResult := resp.Result.(*morpheus.UpdateInstanceResult)
+	updateInstanceResult := resp.Result.(*UpdateInstanceResult)
 	instanceDetails := updateInstanceResult.Instance
 
 	// Updated resource successfully

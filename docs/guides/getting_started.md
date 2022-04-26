@@ -1,12 +1,12 @@
 ## Prerequisites
 Download and Install:
-- [Golang](https://go.dev/doc/install) >= 1.17.5
-- [Terraform](https://www.terraform.io/downloads) >= 1.1.5
+- [Golang](https://go.dev/doc/install) >= 1.18.1
+- [Terraform](https://www.terraform.io/downloads) >= 1.1.8
 
 ## Installation
 Clone terraform-provider-lumen-technologies from github:
 ```shell
-$ git clone https://github.com/CenturyLink/terraform-provider-lumen-technologies.git
+$ git clone https://github.com/LumenTech/terraform-provider-lumen-technologies.git
 ```
 
 ## Setup and install Lumen Terraform Provider
@@ -19,11 +19,11 @@ $ make install
 This will install Morpheus SDKv2 and other SDKs for lumen terraform provider to run and execute opertations.
 
 ## Enable logging
-Terraform logs can be enabled by setting the TF_LOG environment variable to any value, to get detailed logs to appear on stderr. TF_LOG to one of the log levels TRACE, DEBUG, INFO, WARN or ERROR to change the verbosity of the logs. To persist logged output set the TF_LOG_PATH variable to force the log to always be appended to a specific file when logging is enabled.
+Terraform logs can be enabled by setting the TF_LOG environment variable to any value, to get detailed logs to appear on stderr. TF_LOG to one of the log levels TRACE, DEBUG, INFO, WARN or ERROR to change the verbosity of the logs. To persist logged output set the TF_LOG_PATH variable to force the log to always be appended to a specific file when logging is enabled. For logging add the below lines in ~/.bashrc, close the working sessions and open a new session.
 ```shell
-$ cd client
-$ export TF_LOG="TRACE"
-$ export TF_LOG_PATH="./logs/terraform.log"
+# Terraform log settings
+export TF_LOG=TRACE
+export TF_LOG_PATH="/$path_to_terraform-provider-lumen-technologies/client/logs/terraform.log"
 ```
 
 ## Generate API key for Lumen Provider
@@ -83,4 +83,3 @@ To clean up terraform workspace, excute:
 make clean
 ```
 This will clean up existing terraform lock files and existing terraform plugins. This will not clean the terraform state files or utility files. Execute `make install` for building the provider again and execute `terraform init` to re-enable the workspace.
-

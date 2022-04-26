@@ -2,6 +2,7 @@ package lumen
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,34 +13,45 @@ func Provider() *schema.Provider {
 	/* User authentication schema */
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"url": {
+			"api_url": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Lumen API endpoint URL where requests will be directed",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_URL", nil),
 			},
-			"access_token": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				Description:   "Access Token of Lumen API user, instead of authenticating with username and password",
-				DefaultFunc:   schema.EnvDefaultFunc("LUMEN_API_TOKEN", nil),
-				ConflictsWith: []string{"username", "password"},
+			"auth_url": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Lumen API endpoint URL for authentication",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_AUTH_URL", nil),
 			},
 			"username": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Username of Lumen API user for authentication",
-				DefaultFunc:   schema.EnvDefaultFunc("LUMEN_USERNAME", nil),
-				ConflictsWith: []string{"access_token"},
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "Lumen username",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_USERNAME", nil),
 			},
 			"password": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				Description:   "Password of Lumen API user for authentication",
-				DefaultFunc:   schema.EnvDefaultFunc("LUMEN_PASSWORD", nil),
-				ConflictsWith: []string{"access_token"},
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "Lumen password",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_PASSWORD", nil),
+			},
+			"api_access_token": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "Lumen API access token",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_ACCESS_TOKEN", nil),
+			},
+			"api_refresh_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Lumen API refresh token",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_REFRESH_TOKEN", nil),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -67,12 +79,46 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	// Lumen url and user auth based on tenant
-	config := Config{
-		Url:         d.Get("url").(string),
-		AccessToken: d.Get("access_token").(string),
-		Username:    d.Get("username").(string),
-		Password:    d.Get("password").(string),
+	// Lumen API url
+	apiUrl := d.Get("api_url").(string)
+	if apiUrl == "" {
+		return nil, diag.FromErr(fmt.Errorf("Lumen API Url cannot be empty"))
 	}
-	return config.Client()
+	// Lumen API url
+	authUrl := d.Get("auth_url").(string)
+	if apiUrl == "" {
+		return nil, diag.FromErr(fmt.Errorf("Lumen Auth Url cannot be empty"))
+	}
+	// Lumen username
+	username := d.Get("username").(string)
+	if username == "" {
+		return nil, diag.FromErr(fmt.Errorf("Lumen username"))
+	}
+	// Lumen password
+	password := d.Get("password").(string)
+	if password == "" {
+		return nil, diag.FromErr(fmt.Errorf("Lumen password"))
+	}
+	// Lumen API access token
+	apiAccessToken := d.Get("api_access_token").(string)
+	if apiAccessToken == "" {
+		return nil, diag.FromErr(fmt.Errorf("Lumen api access token cannot be empty"))
+	}
+	// Lumen API refresh token
+	apiRefreshToken := d.Get("api_refresh_token").(string)
+	/*
+		if apiRefreshToken == "" {
+			return nil, diag.FromErr(fmt.Errorf("Lumen api refresh token cannot be empty"))
+		}*/
+
+	// Populating client config
+	config := Config{
+		ApiUrl:          apiUrl,
+		AuthUrl:         authUrl,
+		Username:        username,
+		Password:        password,
+		ApiAccessToken:  apiAccessToken,
+		ApiRefreshToken: apiRefreshToken,
+	}
+	return config.LumenClient()
 }

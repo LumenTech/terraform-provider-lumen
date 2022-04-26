@@ -58,13 +58,13 @@ func parseNetworkInterfaces(interfaces []interface{}) []map[string]interface{} {
 			}
 		}
 		if item["ip_address"] != nil {
-			row["ipAddress"] = item["ip_address"] //.(string)
+			row["ipAddress"] = item["ip_address"]
 		}
 		if item["ip_mode"] != nil {
-			row["ipMode"] = item["ip_mode"] // .(string)
+			row["ipMode"] = item["ip_mode"]
 		}
 		if item["network_interface_type_id"] != nil {
-			row["networkInterfaceTypeId"] = item["network_interface_type_id"] //.(int)
+			row["networkInterfaceTypeId"] = item["network_interface_type_id"]
 		}
 		networkInterfaces = append(networkInterfaces, row)
 	}

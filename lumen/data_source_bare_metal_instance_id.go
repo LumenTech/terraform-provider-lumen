@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/gomorpheus/morpheus-go-sdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -194,15 +193,17 @@ func DataSourceBareMetalInstanceIdRead(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
-	// Initializing client module
-	c := m.(*morpheus.Client)
+
+	// Initializing client
+	c := m.(*Client)
+
 	// Warnings or error to be collected in a slice type
 	var diags diag.Diagnostics
-	var resp *morpheus.Response
+	var resp *Response
 	var err error
 
 	instanceid := strconv.Itoa(d.Get("id").(int))
-	resp, err = c.GetInstance(toInt64(instanceid), &morpheus.Request{})
+	resp, err = c.GetInstance(toInt64(instanceid), &Request{})
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
@@ -213,7 +214,7 @@ func DataSourceBareMetalInstanceIdRead(
 	}
 
 	// storing resource data
-	instancedetails := resp.Result.(*morpheus.GetInstanceResult)
+	instancedetails := resp.Result.(*GetInstanceResult)
 
 	// populating schema with morpheus response
 	PopulateSchemaInstanceIdResponse(instancedetails.Instance, d)
@@ -223,7 +224,7 @@ func DataSourceBareMetalInstanceIdRead(
 }
 
 // helper function to populate morpheus response
-func PopulateSchemaInstanceIdResponse(instanceDetails *morpheus.Instance, d *schema.ResourceData) {
+func PopulateSchemaInstanceIdResponse(instanceDetails *Instance, d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)
 		d.Set("description", instanceDetails.Description)
