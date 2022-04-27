@@ -4,15 +4,15 @@ Download and Install:
 - [Terraform](https://www.terraform.io/downloads) >= 1.1.8
 
 ## Installation
-Clone terraform-provider-lumen-technologies from github:
+Clone terraform-provider-lumen from github:
 ```shell
-$ git clone https://github.com/LumenTech/terraform-provider-lumen-technologies.git
+$ git clone https://github.com/LumenTech/terraform-provider-lumen.git
 ```
 
 ## Setup and install Lumen Terraform Provider
 Next, setup and install terraform provider lumen technologies.
 ```shell
-$ cd terrform-provider-lumen-technologies
+$ cd terrform-provider-lumen
 $ make setup
 $ make install
 ```
@@ -23,7 +23,7 @@ Terraform logs can be enabled by setting the TF_LOG environment variable to any 
 ```shell
 # Terraform log settings
 export TF_LOG=TRACE
-export TF_LOG_PATH="/$path_to_terraform-provider-lumen-technologies/client/logs/terraform.log"
+export TF_LOG_PATH="/$path_to_terraform-provider-lumen/client/logs/terraform.log"
 ```
 
 ## Generate API key for Lumen Provider
