@@ -1,10 +1,10 @@
 TEST?=$$(go list ./... | grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 HOSTNAME=lumen.com
-NAMESPACE=edge
-NAME=lumen-technologies
+NAMESPACE=LumenTech
+NAME=lumen
 BINARY=terraform-provider-${NAME}
-VERSION=0.3.1
+VERSION=0.3.3
 OS=$(shell go env GOOS)
 OS_ARCH=$(shell go env GOARCH)
 INSTALL_PATH=~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/linux_$(OS_ARCH)
@@ -66,4 +66,3 @@ clean:
 
 setup:
 	bash -x scripts/setup.sh
-
