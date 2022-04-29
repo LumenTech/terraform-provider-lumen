@@ -42,7 +42,7 @@ At this point you are ready to perform provider operations. Lumen Terraform prov
 
 Additional details for each operation, related to `schema`, `input_variables`, `output` are provided in [Lumen_Provider_Operations](../indexes.md). Depending upon use case, example scripts are provided in the repo under `examples` directory. Copy over terraform utility scripts `main.tf`, `variables.tf`, `provider.tf` and `terraform.tfvars` to client. For example to get list of instances copy over terraform files from `exmaples/data_source_bare_metal_instances` as mentioned below:
 ```shell
-$ cd ~/terrform-provider-lumen-technologies/client/
+$ cd ~/terrform-provider-lumen/client/
 # Copy terraform configuration files
 $ cp ../examples/data_source_bare_metal_instances/*.tf* .
 
