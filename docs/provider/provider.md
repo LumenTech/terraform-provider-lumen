@@ -42,8 +42,8 @@ Details on resources are provided in [docs](../resources).
 terraform {
   required_providers {
     lumen = {
-      source = "lumen.com/edge/lumen-technologies"
-      version = "0.3.1"
+      source = "LumenTech/lumen"
+      version = "0.3.3"
     }
   }
 }

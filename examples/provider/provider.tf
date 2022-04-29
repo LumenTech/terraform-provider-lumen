@@ -2,14 +2,14 @@
 terraform {
   required_providers {
     lumen = {
-      source = "lumen.com/edge/lumen-technologies"
-      version = "0.3.1"
+      source = "LumenTech/lumen"
+      version = "0.3.3"
     }
   }
 }
 
-# Provider access creds
 provider "lumen" {
+  # Configuration options
   api_url = var.lumen_api_url
   auth_url = var.lumen_auth_url
   username = var.lumen_username
