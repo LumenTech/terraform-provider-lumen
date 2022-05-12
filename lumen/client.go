@@ -30,7 +30,7 @@ type Client struct {
 
 // Setting up new client
 func NewClient(apiUrl string, authUrl string) (client *Client) {
-	var userAgent = "lumen-terraform-plugin v0.3.3"
+	var userAgent = "lumen-terraform-plugin v0.3.5"
 	return &Client{
 		ApiUrl:    apiUrl,
 		AuthUrl:   authUrl,

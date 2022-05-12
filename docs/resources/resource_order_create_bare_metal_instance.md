@@ -70,8 +70,6 @@ output "tf_test_instance" {
 ## Terraform Input Variables
 `variables.tf`
 ### Required
-- lumen_api_url "Lumen API endpoint"
-- lumen_auth_url "Lumen user authentication url"
 - lumen_username "Lumen username"
 - lumen_password "Lumen password"
 - lumen_api_access_token "Lumen Api access token"

@@ -42,26 +42,23 @@ Details on resources are provided in [docs](../resources).
 terraform {
   required_providers {
     lumen = {
-      source = "LumenTech/lumen"
-      version = "0.3.3"
+      source = "lumen.com/lumentech/lumen"
+      version = "0.3.5"
     }
   }
 }
 
 # Provider access creds
 provider "lumen" {
-  api_url = var.lumen_api_url
-  auth_url = var.lumen_auth_url
   username = var.lumen_username
   password = var.lumen_password
   api_access_token = var.lumen_api_access_token
   api_refresh_token = var.lumen_api_refresh_token
 }
 ```
+
 `variables.tf`
 ```hcl
-- "api_url" : "https://api.lumen.com/EdgeServices/v1/Compute/"
-- "auth_url" : "https://api.lumen.com/oauth/v1/token"
 - "username" : $consumer_key
 - "password" : $consumer_secret
 - "lumen_api_access_token": $lumen_api_access_token
@@ -70,8 +67,6 @@ provider "lumen" {
 
 `terraform.tfvars`
 ```hcl
-lumen_api_url = "https://api.lumen.com/EdgeServices/v1/Compute/"
-lumen_auth_url = "https://api.lumen.com/oauth/v1/token"
 lumen_username = $consumer_key
 lumen_password = $consumer_secret
 lumen_api_access_token = $lumen_api_access_token

@@ -16,7 +16,7 @@ $ cd terrform-provider-lumen
 $ make setup
 $ make install
 ```
-This will install Morpheus SDKv2 and other SDKs for lumen terraform provider to run and execute opertations.
+This will install SDKs for lumen terraform provider to execute API operations.
 
 ## Enable logging
 Terraform logs can be enabled by setting the TF_LOG environment variable to any value, to get detailed logs to appear on stderr. TF_LOG to one of the log levels TRACE, DEBUG, INFO, WARN or ERROR to change the verbosity of the logs. To persist logged output set the TF_LOG_PATH variable to force the log to always be appended to a specific file when logging is enabled. For logging add the below lines in ~/.bashrc, close the working sessions and open a new session.

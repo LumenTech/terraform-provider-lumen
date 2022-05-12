@@ -36,8 +36,6 @@ output "all_instances" {
 ## Terraform Input Variables
 `variables.tf`
 ### Required
-- lumen_api_url "Lumen API endpoint"
-- lumen_auth_url "Lumen user authentication url"
 - lumen_username "Lumen username"
 - lumen_password "Lumen password"
 - lumen_api_access_token "Lumen Api access token"
@@ -48,14 +46,11 @@ Each of the variables are defined in `terraform.tfvars`.
 ### Example usage
 `terraform.tfvars` 
 ```hcl
-lumen_api_url = "https://api.lumen.com/EdgeServices/v1/Compute"
-lumen_auth_url = "https://api.lumen.com/oauth/v1/token"
 lumen_username = $consumer_key
 lumen_password = $consumer_secret
 lumen_api_access_token = $lumen_api_access_token
 lumen_api_refresh_token = $lumen_api_refresh_token
 ```
-
 
 ## References
 <a id="1">[1]</a> API doc: http://apidocs.edge.lumen.com/#get-all-instances
