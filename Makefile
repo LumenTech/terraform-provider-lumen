@@ -1,10 +1,10 @@
 TEST?=$$(go list ./... | grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 HOSTNAME=lumen.com
-NAMESPACE=LumenTech
+NAMESPACE=lumentech
 NAME=lumen
 BINARY=terraform-provider-${NAME}
-VERSION=0.3.3
+VERSION=0.3.5
 OS=$(shell go env GOOS)
 OS_ARCH=$(shell go env GOARCH)
 INSTALL_PATH=~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/linux_$(OS_ARCH)
@@ -24,9 +24,6 @@ tools:
 
 build: tools
 	go build -o ${BINARY}
-
-update:
-	go get -u github.com/gomorpheus/morpheus-go-sdk
 
 release:
 	GOOS=darwin GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_darwin_amd64

@@ -13,18 +13,6 @@ func Provider() *schema.Provider {
 	/* User authentication schema */
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_url": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Lumen API endpoint URL where requests will be directed",
-				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_URL", nil),
-			},
-			"auth_url": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Lumen API endpoint URL for authentication",
-				DefaultFunc: schema.EnvDefaultFunc("LUMEN_AUTH_URL", nil),
-			},
 			"username": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -80,15 +68,9 @@ func Provider() *schema.Provider {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// Lumen API url
-	apiUrl := d.Get("api_url").(string)
-	if apiUrl == "" {
-		return nil, diag.FromErr(fmt.Errorf("Lumen API Url cannot be empty"))
-	}
-	// Lumen API url
-	authUrl := d.Get("auth_url").(string)
-	if apiUrl == "" {
-		return nil, diag.FromErr(fmt.Errorf("Lumen Auth Url cannot be empty"))
-	}
+	apiUrl := "https://api.lumen.com/EdgeServices/v1/Compute/"
+	// Lumen Auth url
+	authUrl := "https://api.lumen.com/oauth/v1/token"
 	// Lumen username
 	username := d.Get("username").(string)
 	if username == "" {
