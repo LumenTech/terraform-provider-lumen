@@ -36,32 +36,32 @@ func DataSourceBareMetalAllInstances() *schema.Resource {
 							Computed:    true,
 						},
 						"cloud_id": {
-							Description: "The ID of the cloud associated with the instance",
+							Description: "Cloud Id associated with the instance",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"group_id": {
-							Description: "The ID of the group associated with the instance",
+							Description: "Group Id associated with the instance",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"instance_type_id": {
-							Description: "The type of instance to provision",
+							Description: "Type Id of instance provisioned",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"instance_layout_id": {
-							Description: "The layout to provision the instance from",
+							Description: "Layout Id of the instance provisioned",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"plan_id": {
-							Description: "The service plan associated with the instance",
+							Description: "Service plan associated with instance",
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
 						"environment": {
-							Description: "The environment to assign the instance to",
+							Description: "Environment in which the instance is provisioned",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
@@ -131,44 +131,46 @@ func FlattenInstances(instanceList *[]Instance) []interface{} {
 		instances := make([]interface{}, len(*instanceList), len(*instanceList))
 
 		for i, instanceItem := range *instanceList {
-			instance := make(map[string]interface{})
-			// Populating instance details
-			instance["id"] = instanceItem.ID
-			instance["name"] = instanceItem.Name
-			instance["description"] = instanceItem.Description
-			instance["cloud_id"] = instanceItem.Cloud["id"]
-			instance["group_id"] = instanceItem.Group["id"]
-			instance["plan_id"] = instanceItem.Plan.ID
-			instance["instance_type_id"] = instanceItem.InstanceType["id"]
-			instance["instance_layout_id"] = instanceItem.Layout["id"]
-			instance["environment"] = instanceItem.Environment
-			instance["version"] = instanceItem.Version
-			instance["status"] = instanceItem.Status
+			if instanceItem.InstanceType["name"] != "Lumen Network" {
+				instance := make(map[string]interface{})
+				// Populating instance details
+				instance["id"] = instanceItem.ID
+				instance["name"] = instanceItem.Name
+				instance["description"] = instanceItem.Description
+				instance["cloud_id"] = instanceItem.Cloud["id"]
+				instance["group_id"] = instanceItem.Group["id"]
+				instance["plan_id"] = instanceItem.Plan.ID
+				instance["instance_type_id"] = instanceItem.InstanceType["id"]
+				instance["instance_layout_id"] = instanceItem.Layout["id"]
+				instance["environment"] = instanceItem.Environment
+				instance["version"] = instanceItem.Version
+				instance["status"] = instanceItem.Status
 
-			// Setting location, bandwidth
-			customOptions := instanceItem.Config["customOptions"]
-			v := reflect.ValueOf(customOptions)
-			if v.Kind() == reflect.Map {
-				for _, key := range v.MapKeys() {
-					strct := v.MapIndex(key)
-					if key.Interface().(string) == "edgeLocation" {
-						instance["instance_location"] = strct.Interface().(string)
+				// Setting location, bandwidth
+				customOptions := instanceItem.Config["customOptions"]
+				v := reflect.ValueOf(customOptions)
+				if v.Kind() == reflect.Map {
+					for _, key := range v.MapKeys() {
+						strct := v.MapIndex(key)
+						if key.Interface().(string) == "edgeLocation" {
+							instance["instance_location"] = strct.Interface().(string)
+						}
 					}
 				}
-			}
 
-			// Setting instance ip address
-			envVars := instanceItem.EnvironmentVariables
-			for _, envVarsItems := range *envVars {
-				envVarIP := envVarsItems["value"].(string)
-				varIp := net.ParseIP(envVarIP)
-				if varIp.To4() != nil {
-					instance["instance_ip"] = envVarIP
-					break
+				// Setting instance ip address
+				envVars := instanceItem.EnvironmentVariables
+				for _, envVarsItems := range *envVars {
+					envVarIP := envVarsItems["value"].(string)
+					varIp := net.ParseIP(envVarIP)
+					if varIp.To4() != nil {
+						instance["instance_ip"] = envVarIP
+						break
+					}
 				}
+				// Adding instance details
+				instances[i] = instance
 			}
-			// Adding instance details
-			instances[i] = instance
 		}
 
 		return instances
