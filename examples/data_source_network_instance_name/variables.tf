@@ -1,4 +1,4 @@
-# Variables to access lumen resources.
+# Variables and user credentials to access lumen resources.
 variable "lumen_username" {
   description = "Lumen username"
   type = string
@@ -19,7 +19,7 @@ variable "lumen_api_refresh_token" {
   type = string
 }
 
-variable "instance_id" {
-  description = "Lumen instance id"
+variable "instance_name" {
+  description = "Lumen instance name"
   type = string
 }

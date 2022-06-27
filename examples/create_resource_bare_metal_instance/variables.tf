@@ -1,4 +1,5 @@
 # Variables and user credentials to access lumen resources.
+# User credentials
 variable "lumen_username" {
   description = "Lumen username"
   type = string
@@ -19,6 +20,38 @@ variable "lumen_api_refresh_token" {
   type = string
 }
 
+# Variables for creating nw instance
+variable "nw_instance_name" {
+  description = "Lumen network instance name"
+  type = string
+}
+
+variable "nw_instance_description" {
+  description = "Lumen network instance description"
+  type = string
+}
+
+variable "nw_plan_id" {
+  description = "Lumen network instance plan id"
+  type = number
+}
+
+variable "nw_instance_type_code" {
+  description = "Lumen network instance type code"
+  type = string
+}
+
+variable "nw_instance_layout_id" {
+  description = "Lumen network instance layout id"
+  type = number
+}
+
+variable "nw_instance_bandwidth" {
+  description = "Lumen edge bandwidth"
+  type = number
+}
+
+# Variables for creating bare-metal instance
 variable "instance_name" {
   description = "Lumen instance name"
   type = string
@@ -39,14 +72,9 @@ variable "cloud_id" {
   type = number
 }
 
-variable "plan_id" {
-  description = "Instance plan id"
+variable "instance_type_id" {
+  description = "Instance type id"
   type = number
-}
-
-variable "instance_type" {
-  description = "Instance type"
-  type = string
 }
 
 variable "instance_type_code" {
@@ -54,19 +82,18 @@ variable "instance_type_code" {
   type = string
 }
 
+variable "instance_type_name" {
+  description = "Instance type name"
+  type = string
+}
+
 variable "instance_layout_id" {
   description = "Instance layout id"
   type = number
 }
-
-variable "instance_resource_pool_id" {
-  description = "Instance resource pool id"
+variable "plan_id" {
+  description = "Instance plan id"
   type = number
-}
-
-variable "create_user" {
-  description = "Create user id"
-  type = bool
 }
 
 variable "instance_location" {
@@ -74,13 +101,7 @@ variable "instance_location" {
   description = "Lumen edge location"
 }
 
-variable "instance_bandwidth" {
-  description = "Lumen edge bandwidth"
-  type = number
-}
-
 variable "instance_network_type" {
   description = "Lumen instance network type"
   type = string
 }
-

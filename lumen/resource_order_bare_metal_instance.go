@@ -3,8 +3,7 @@ package lumen
 import (
 	"context"
 	//"encoding/json"
-	"net"
-	"reflect"
+
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -61,23 +60,23 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
-			"instance_type": {
-				Description: "The instance layout type to provision",
+			"instance_type_id": {
+				Description: "The instance type id to provision",
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
 			"instance_type_code": {
-				Description: "The instance layout code to provision",
+				Description: "The instance type layout code to provision",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
+			"instance_type_name": {
+				Description: "The instance type name to provision",
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
 			"instance_layout_id": {
 				Description: "The layout to provision the instance from",
-				Type:        schema.TypeInt,
-				Optional:    true,
-			},
-			"instance_resource_pool_id": {
-				Description: "The ID of the resource pool to provision the instance to",
 				Type:        schema.TypeInt,
 				Optional:    true,
 			},
@@ -93,15 +92,15 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
-			"bandwidth": {
-				Description: "The bandwidth assigned to instance",
-				Type:        schema.TypeFloat,
-				Optional:    true,
-			},
 			"network_type": {
 				Description: "The instance network type",
 				Type:        schema.TypeString,
 				Optional:    true,
+			},
+			"network_id": {
+				Description: "The network instance id",
+				Type:        schema.TypeString,
+				Required:    true,
 			},
 			"instance_ip": {
 				Description: "The instance ip address",
@@ -133,10 +132,6 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-			},
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"status": {
 				Description: "Instance status",
@@ -240,6 +235,26 @@ func ResourceBareMetalInstance() *schema.Resource {
 					},
 				},
 			},
+			"date_created": {
+				Description: "Instance creation date",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"last_updated": {
+				Description: "Instance last updated",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"instance_created_by": {
+				Description: "Instance created by user",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"instance_owner": {
+				Description: "Instance owner",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -257,74 +272,74 @@ func ResourceBareMetalInstanceCreate(
 	// Initializing client
 	c := m.(*Client)
 
-	// Getting instance name, cloud, and group id
-	instancename := d.Get("name").(string)
-	instancegroup := d.Get("group_id").(int)
-	instancecloud := d.Get("cloud_id").(int)
-
 	// payload
 	payload := make(map[string]interface{})
-	payload["zoneId"] = instancecloud
+
+	// Getting instance name, cloud, and group id
+	instanceName := d.Get("name").(string)
+	instanceCloudId := d.Get("cloud_id").(int)
+	instanceGroupId := d.Get("group_id").(int)
+
+	payload["zoneId"] = instanceCloudId
 
 	// instance details
 	instance := make(map[string]interface{})
-	instance["name"] = instancename
+	instance["name"] = instanceName
 
 	// instance description
-	instancedescription := d.Get("description").(string)
-	instance["description"] = instancedescription
+	instanceDescription := d.Get("description").(string)
+	instance["description"] = instanceDescription
 
 	// Creating instance site details
 	site := make(map[string]interface{})
-	site["id"] = instancegroup
+	site["id"] = instanceGroupId
 	// Adding site to instance payload
 	instance["site"] = site
 
-	// Getting instance type and adding to instance payload
-	instancetype := d.Get("instance_type").(string)
-	instance["type"] = instancetype
-
-	// Getting instance layout code and adding to instance payload
-	instancetypecode := make(map[string]interface{})
-	instancelayoutcode := d.Get("instance_type_code").(string)
-	instancetypecode["code"] = instancelayoutcode
-	instance["instanceType"] = instancetypecode
+	// Getting instance type id, code and name. Adding to instance payload.
+	instanceType := make(map[string]interface{})
+	instanceTypeId := d.Get("instance_type_id").(string)
+	instanceTypeCode := d.Get("instance_type_code").(string)
+	instanceTypeName := d.Get("instance_type_name").(string)
+	instanceType["id"] = instanceTypeId
+	instanceType["code"] = instanceTypeCode
+	instanceType["name"] = instanceTypeName
+	instance["instanceType"] = instanceType
 
 	// Getting instance layout id and adding to instance payload
-	instancelayout := make(map[string]interface{})
-	instancelayoutid := d.Get("instance_layout_id").(int)
-	instancelayout["id"] = instancelayoutid
-	instance["layout"] = instancelayout
+	instanceLayout := make(map[string]interface{})
+	instanceLayoutId := d.Get("instance_layout_id")
+	instanceLayout["id"] = instanceLayoutId
+	instance["layout"] = instanceLayout
+
+	// Adding instance hostname
+	instance["hostName"] = instanceName
 
 	// Getting instance plan and adding to instance payload
-	instanceplan := make(map[string]interface{})
-	instanceplanid := d.Get("plan_id").(int)
-	instanceplan["id"] = instanceplanid
-	instance["plan"] = instanceplan
+	instancePlan := make(map[string]interface{})
+	instancePlanId := d.Get("plan_id").(int)
+	instancePlan["id"] = instancePlanId
+	instance["plan"] = instancePlan
 
 	// Adding instance details to payload
 	payload["instance"] = instance
+	// Adding type to payload
+	payload["type"] = instanceTypeCode
 
 	// Creating instance config
 	config := make(map[string]interface{})
 
-	// Getting config data
-	resourcepoolid := d.Get("instance_resource_pool_id").(int)
-	config["resourcePoolId"] = resourcepoolid
 	// Custom configs
-	edgelocation := d.Get("location").(string)
-	edgebandwidth := d.Get("bandwidth").(float64)
-	instancenetworktype := d.Get("network_type").(string)
+	edgeLocation := d.Get("location").(string)
+	networkId := d.Get("network_id").(string)
+	networkType := d.Get("network_type").(string)
 
-	customoptions := make(map[string]interface{})
-	customoptions["edgeLocation"] = edgelocation
-	customoptions["edgeBandwidth"] = edgebandwidth
-	customoptions["centuryLinkNetworkType"] = instancenetworktype
+	customOptions := make(map[string]interface{})
+	customOptions["edgeLocation"] = edgeLocation
+	customOptions["networkId"] = networkId
+	customOptions["centuryLinkNetworkType"] = networkType
 	// Adding custom config to config
-	config["customOptions"] = customoptions
-	// Create user and add to payload
-	createuser := d.Get("create_user")
-	config["createUser"] = createuser
+	config["customOptions"] = customOptions
 
 	// Adding config to payload
 	payload["config"] = config
@@ -400,7 +415,7 @@ func ResourceBareMetalInstanceCreate(
 	// Successfully created instance, setting instance id and name
 	d.SetId(int64ToString(instanceDetails.ID))
 	d.Set("name", instanceDetails.Name)
-	// Fetching Instance details and storing response for user
+	// Fetching created instance details and storing response in output schema
 	ResourceBareMetalInstanceRead(ctx, d, m)
 	return diags
 }
@@ -425,10 +440,10 @@ func ResourceBareMetalInstanceRead(
 
 	instanceid := d.Id()
 	instancename := d.Get("name").(string)
-	if instanceid == "" && instancename != "" {
-		resp, err = c.FindInstanceByName(instancename)
-	} else if instanceid != "" {
+	if instanceid != "" {
 		resp, err = c.GetInstance(toInt64(instanceid), &Request{})
+	} else if instancename != "" {
+		resp, err = c.FindInstanceByName(instancename)
 	} else {
 		return diag.Errorf(
 			"INFO: Instance details cannot be retrieved without id or name")
@@ -449,58 +464,33 @@ func ResourceBareMetalInstanceRead(
 		return diag.Errorf("ERROR: Instance details not retrieved in response data")
 	}
 
-	// Populating schema with morpheus response
+	// Populating schema with get instance response
 	d.Set("description", instanceDetails.Description)
 	d.Set("cloud_id", instanceDetails.Cloud["id"])
 	d.Set("group_id", instanceDetails.Group["id"])
 	d.Set("instance_type_id", instanceDetails.InstanceType["id"])
 	d.Set("instance_type_layout", instanceDetails.Layout["id"])
 	d.Set("plan_id", instanceDetails.Plan.ID)
-	d.Set("resource_pool_id", instanceDetails.Config["resourcePoolId"])
-	d.Set("environment", instanceDetails.Environment)
 	d.Set("labels", instanceDetails.Labels)
-	d.Set("version", instanceDetails.Version)
 	d.Set("status", instanceDetails.Status)
 
-	// Setting location and bandwidth
-	customOptions := instanceDetails.Config["customOptions"]
-	v := reflect.ValueOf(customOptions)
-	if v.Kind() == reflect.Map {
-		for _, key := range v.MapKeys() {
-			strct := v.MapIndex(key)
-			if key.Interface().(string) == "edgeLocation" {
-				d.Set("location", strct.Interface().(string))
-			} else if key.Interface().(string) == "edgeBandwidth" {
-				d.Set("bandwidth", strct.Interface().(float64))
-			}
-		}
-	}
+	// Setting instance custom configs
+	SetBareMetalInstanceCustomConfigs(instanceDetails, d)
 
-	// Setting instance ip address
-	envVars := instanceDetails.EnvironmentVariables
-	for _, envVarsItems := range *envVars {
-		envVarIP := envVarsItems["value"].(string)
-		varIp := net.ParseIP(envVarIP)
-		if varIp.To4() != nil {
-			d.Set("instance_ip", envVarIP)
-			break
-		}
-	}
+	// Setting instance connection info
+	SetBareMetalInstanceConnectionInfo(instanceDetails, d)
+
+	// Setting timestamps for instance creation, last updated
+	SetBareMetalInstanceTimestamps(instanceDetails, d)
+
+	// Setting user for instance user and owner
+	SetBareMetalInstanceUsers(instanceDetails, d)
 
 	// Setting tags
-	tags := make(map[string]interface{})
-	if instanceDetails.Tags != nil {
-		tagDetails := instanceDetails.Tags
-		tagsList := *tagDetails
-		for i := 0; i < len(tagsList); i++ {
-			tag := tagsList[i]
-			tagName := tag["name"]
-			tags[tagName.(string)] = tag["value"]
+	SetBareMetalInstanceTags(instanceDetails, d)
 
-		}
-	}
-	d.Set("tags", tags)
-
+	// Setting volumes
+	SetBareMetalInstanceVolumes(instanceDetails, d)
 	return diags
 }
 
@@ -522,11 +512,11 @@ func ResourceBareMetalInstanceDelete(
 	c := m.(*Client)
 
 	instanceid := d.Id()
-	morphRequest := &Request{
+	instanceDelRequest := &Request{
 		QueryParams: map[string]string{},
 	}
 
-	resp, err = c.DeleteInstance(toInt64(instanceid), morphRequest)
+	resp, err = c.DeleteInstance(toInt64(instanceid), instanceDelRequest)
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {

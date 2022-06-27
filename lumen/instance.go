@@ -11,19 +11,24 @@ var (
 
 // Instance structures for use in request and response payloads
 type Instance struct {
-	ID           int64                  `json:"id"`
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description"`
-	InstanceType map[string]interface{} `json:"instanceType"`
-	Layout       map[string]interface{} `json:"layout"`
-	Group        map[string]interface{} `json:"group"`
-	Cloud        map[string]interface{} `json:"cloud"`
-	Environment  string                 `json:"instanceContext"`
-	Plan         InstancePlan           `json:"plan"`
-	Config       map[string]interface{} `json:"config"`
-	Labels       []string               `json:"labels"`
-	Version      string                 `json:"instanceVersion"`
-	Status       string                 `json:"status"`
+	ID             int64                    `json:"id"`
+	Name           string                   `json:"name"`
+	Description    string                   `json:"description"`
+	InstanceType   map[string]interface{}   `json:"instanceType"`
+	Layout         map[string]interface{}   `json:"layout"`
+	Group          map[string]interface{}   `json:"group"`
+	Cloud          map[string]interface{}   `json:"cloud"`
+	Environment    string                   `json:"instanceContext"`
+	Plan           InstancePlan             `json:"plan"`
+	Config         map[string]interface{}   `json:"config"`
+	Labels         []string                 `json:"labels"`
+	Version        string                   `json:"instanceVersion"`
+	Status         string                   `json:"status"`
+	DateCreated    string                   `json:"dateCreated"`
+	LastUpdated    string                   `json:"lastUpdated"`
+	CreatedBy      map[string]interface{}   `json:"createdBy"`
+	Owner          map[string]interface{}   `json:"owner"`
+	ConnectionInfo []map[string]interface{} `json:"connectionInfo"`
 
 	Volumes              *[]map[string]interface{} `json:"volumes"`
 	Interfaces           *[]map[string]interface{} `json:"interfaces"`

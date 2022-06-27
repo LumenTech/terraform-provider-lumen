@@ -2,8 +2,6 @@ package lumen
 
 import (
 	"context"
-	"net"
-	"reflect"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -59,28 +57,13 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 				Type:        schema.TypeInt,
 				Computed:    true,
 			},
-			"resource_pool_id": {
-				Description: "The ID of the resource pool to provision the instance",
-				Type:        schema.TypeInt,
-				Computed:    true,
-			},
-			"environment": {
-				Description: "The environment to assign the instance",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 			"instance_location": {
 				Description: "The instance location",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_bandwidth": {
-				Description: "The instance bandwidth",
-				Type:        schema.TypeFloat,
-				Computed:    true,
-			},
 			"instance_ip": {
-				Description: "The instance ip address",
+				Description: "The instance IP address",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -182,6 +165,36 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 					},
 				},
 			},
+			"network_type": {
+				Description: "The network type associated with the resource",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"network_id": {
+				Description: "The network id associated with the instance",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"date_created": {
+				Description: "Timestamp on instance creation",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"last_updated": {
+				Description: "Timestamp on last instance update",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"instance_created_by": {
+				Description: "User who created the instance",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"instance_owner": {
+				Description: "The instance owner",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -213,18 +226,20 @@ func DataSourceBareMetalInstanceIdRead(
 		}
 	}
 
-	// storing resource data
+	// storing get instance response data
 	instancedetails := resp.Result.(*GetInstanceResult)
 
-	// populating schema with morpheus response
+	// populating schema with instance response
 	PopulateSchemaInstanceIdResponse(instancedetails.Instance, d)
 	// Setting instance id
 	d.SetId(instanceid)
 	return diags
 }
 
-// helper function to populate morpheus response
-func PopulateSchemaInstanceIdResponse(instanceDetails *Instance, d *schema.ResourceData) {
+// helper function to populate response schema
+func PopulateSchemaInstanceIdResponse(
+	instanceDetails *Instance,
+	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)
 		d.Set("description", instanceDetails.Description)
@@ -233,61 +248,26 @@ func PopulateSchemaInstanceIdResponse(instanceDetails *Instance, d *schema.Resou
 		d.Set("instance_type_id", instanceDetails.InstanceType["id"])
 		d.Set("instance_layout_id", instanceDetails.Layout["id"])
 		d.Set("plan_id", instanceDetails.Plan.ID)
-		d.Set("resource_pool_id", instanceDetails.Config["resourcePoolId"])
-		d.Set("environment", instanceDetails.Environment)
 		d.Set("version", instanceDetails.Version)
 		d.Set("status", instanceDetails.Status)
 		d.Set("labels", instanceDetails.Labels)
 
-		// Setting instance bandwidth and location
-		customOptions := instanceDetails.Config["customOptions"]
-		v := reflect.ValueOf(customOptions)
-		if v.Kind() == reflect.Map {
-			for _, key := range v.MapKeys() {
-				strct := v.MapIndex(key)
-				if key.Interface().(string) == "edgeLocation" {
-					d.Set("instance_location", strct.Interface().(string))
-				} else if key.Interface().(string) == "edgeBandwidth" {
-					d.Set("instance_bandwidth", strct.Interface().(float64))
-				}
-			}
-		}
+		// Setting instance custom configs
+		SetBareMetalInstanceCustomConfigs(instanceDetails, d)
 
-		// Setting instance ip address
-		envVars := instanceDetails.EnvironmentVariables
-		for _, envVarsItems := range *envVars {
-			envVarIP := envVarsItems["value"].(string)
-			varIp := net.ParseIP(envVarIP)
-			if varIp.To4() != nil {
-				d.Set("instance_ip", envVarIP)
-				break
-			}
-		}
+		// Setting instance connection info
+		SetBareMetalInstanceConnectionInfo(instanceDetails, d)
+
+		// Setting timestamps for instance creation, last updated
+		SetBareMetalInstanceTimestamps(instanceDetails, d)
+
+		// Setting user for instance user and owner
+		SetBareMetalInstanceUsers(instanceDetails, d)
 
 		// Setting tags
-		tags := make(map[string]interface{})
-		if instanceDetails.Tags != nil {
-			instanceTags := instanceDetails.Tags
-			tagList := *instanceTags
-			for i := 0; i < len(tagList); i++ {
-				tag := tagList[i]
-				tagName := tag["name"]
-				tags[tagName.(string)] = tag["value"]
-			}
-		}
-		d.Set("tags", tags)
+		SetBareMetalInstanceTags(instanceDetails, d)
 
 		// Setting volumes
-		volumes := make(map[string]interface{})
-		if instanceDetails.Volumes != nil {
-			instanceVolumes := instanceDetails.Volumes
-			volumeList := *instanceVolumes
-			for i := 0; i < len(volumeList); i++ {
-				volume := volumeList[i]
-				volumeName := volume["name"]
-				volumes[volumeName.(string)] = volume["value"]
-			}
-		}
-		d.Set("volumes", volumes)
+		SetBareMetalInstanceVolumes(instanceDetails, d)
 	}
 }

@@ -30,12 +30,15 @@ output "instance" {
 - instance_type_id (Integer) "The type of instance to provision"
 - instance_layout_id (Integer) "The layout to provision the instance from"
 - plan_id (Integer) "The service plan associated with the instance"
-- resource_pool_id (Integer) "The ID of the resource pool to provision the instance to"
-- environment (String) "The environment to assign the instance to"
-- version (String)
 - status (String) "Instance status"
 - instance_location (String) "The instance location"
 - instance_ip (String) "The instance ip address"
+- network_id (Integer) "The network id associated with the instance"
+- network_type (String) "The network type associated with the instance"
+- date_created (String) "Timestamp on instance creation"
+- last_updated (String) "Timestamp on last instance update"
+- instance_created_by (String) "User who created the instance"
+- instance_owner (String) "Instance owner"
 
 ## Terraform Input Variables
 `variables.tf`

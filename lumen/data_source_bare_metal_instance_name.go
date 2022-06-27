@@ -25,7 +25,7 @@ func DataSourceBareMetalInstanceName() *schema.Resource {
 			},
 			"id": {
 				Description: "Instance ID",
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Computed:    true,
 			},
 			"description": {
@@ -217,7 +217,7 @@ func DataSourceBareMetalInstanceName() *schema.Resource {
 }
 
 /*
-Retrieve instance details with Id or instance name
+Retrieve instance details based on instance name
 */
 func DataSourceBareMetalInstanceNameRead(
 	ctx context.Context,
@@ -253,10 +253,12 @@ func DataSourceBareMetalInstanceNameRead(
 }
 
 // flattening response
-func PopulateSchemaInstanceNameResponse(instanceDetails *Instance, d *schema.ResourceData) {
+func PopulateSchemaInstanceNameResponse(
+	instanceDetails *Instance,
+	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)
-		d.SetId(int64ToString(instanceDetails.ID))
+		d.Set("id", instanceDetails.ID)
 		d.Set("cloud_id", instanceDetails.Cloud["id"])
 		d.Set("group_id", instanceDetails.Group["id"])
 		d.Set("instance_type_id", instanceDetails.InstanceType["id"])

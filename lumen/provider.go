@@ -44,23 +44,34 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			/*
-				resource_bare_metal_instance :
-					- create instance
+				ResourceBareMetalInstance :
+					- create bare metal instance
 					- read created instance
-					- delete instance
-					- update instance
+					- delete bare metal instance
+					- update bare instance
+				ResourceNetworkInstance:
+					- create network instance
+					- delete network instance
 			*/
 			"lumen_bare_metal_instance": ResourceBareMetalInstance(),
+			"lumen_network_instance":    ResourceNetworkInstance(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			/*
-				dataSourceBareMetalAllInstances : lists all instances currently with tenant.
-				dataSourceBareMetalInstanceId : lists details for a particular instance based on instance id.
-				dataSourceBareMetalInstanceName : lists details for a particular instance based on instance name.
+				DataSourceBareMetalAllInstances : lists all instances currently with tenant.
+				DataSourceBareMetalInstanceId : lists details for a particular instance based on instance id.
+				DataSourceBareMetalInstanceName : lists details for a particular instance based on instance name.
+				DataSourceNetworkAllInstances : lists all network instances currently under a tenant.
+				DataSourceNetworkInstanceId : lists details for network instance based on instance id.
+				DataSourceNetworkInstanceName : lists details for network instance based on instance name.
+
 			*/
 			"lumen_bare_metal_instances":     DataSourceBareMetalAllInstances(),
 			"lumen_bare_metal_instance_id":   DataSourceBareMetalInstanceId(),
 			"lumen_bare_metal_instance_name": DataSourceBareMetalInstanceName(),
+			"lumen_network_instances":        DataSourceNetworkAllInstances(),
+			"lumen_network_instance_id":      DataSourceNetworkInstanceId(),
+			"lumen_network_instance_name":    DataSourceNetworkInstanceName(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

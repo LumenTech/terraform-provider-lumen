@@ -21,6 +21,9 @@ DataSourcesMap: {
     "lumen_bare_metal_instances":     DataSourceBareMetalAllInstances(),
     "lumen_bare_metal_instance_id":   DataSourceBareMetalInstanceId(),
     "lumen_bare_metal_instance_name": DataSourceBareMetalInstanceName(),
+    "lumen_network_instances":        DataSourceNetworkAllInstances(),
+		"lumen_network_instance_id":      DataSourceNetworkInstanceId(),
+		"lumen_network_instance_name":    DataSourceNetworkInstanceName(),
 },
 ```
 Details on data-sources are provided in [docs](../data-sources).
@@ -29,6 +32,7 @@ Details on data-sources are provided in [docs](../data-sources).
 ```golang
 ResourcesMap: {
     "lumen_bare_metal_instance": ResourceBareMetalInstance(),
+    "lumen_network_instance":    ResourceNetworkInstance(),
 },
 ```
 Details on resources are provided in [docs](../resources).
@@ -43,7 +47,7 @@ terraform {
   required_providers {
     lumen = {
       source = "lumen.com/lumentech/lumen"
-      version = "0.3.5"
+      version = "0.4.0"
     }
   }
 }
