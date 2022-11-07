@@ -2,6 +2,9 @@
 # Terraform Provider Lumen Technologies
 This is the Terraform Provider for Lumen Bare Metal Management Platform. It interfaces with the Lumen API client. Developed in Go.
 
+## Version
+Current: 0.4.1
+
 ## Requirements
 - [Terraform](https://www.terraform.io/downloads) >= 1.2.3
 - [Golang](https://go.dev/doc/install) >= 1.18.3
