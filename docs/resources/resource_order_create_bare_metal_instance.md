@@ -3,7 +3,7 @@
 | Resource_Order_Create_Bare_Metal_Instance  | Details on bare metal instance creation |
 
 ## Introduction
-This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1). In order to create a bare metal resource, a network resource needs to be created first, and then the id from the created network resource will be used in creating the bare metal resource.  
+This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1). In order to create a bare metal resource, a network resource needs to be created first, and then the id from the created network resource will be used in creating the bare metal resource. Example payload for creating bare-metal instance is provide in Ref [[2]](#2).
 
 ## Example Usage
 `main.tf`
@@ -142,7 +142,7 @@ output "tf_bm_test_instance" {
 - "instance_network_id" : "Lumen instance network id" (Integer)
 - "instance_network_type" : "Lumen instance network type" (String)
 
-Each of these variables are defined in `terraform.tfvars`. Details related to `group_id`, `cloud_id`, `plan_id`, `instance_location`, `instance_bandwidth`, `instance_network_type` are provided in Ref [[2]](#2).
+Each of these variables are defined in `terraform.tfvars`. Details related to `group_id`, `cloud_id`, `plan_id`, `instance_location`, `instance_bandwidth`, `instance_network_type` are provided in Ref [[3]](#3).
 
 ## Example usage
 `terraform.tfvars`
@@ -215,6 +215,8 @@ instance_network_type = $instance_network_type
 ```
 
 ## References
-<a id="1">[1]</a> API doc: http://apidocs.edge.lumen.com/#create-an-instance
+<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/addInstance
 
-<a id="2">[2]</a> API doc: http://apidocs.edge.lumen.com/#id-code-tables
+<a id="2">[2]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=code-samples
+
+<a id="3">[3]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=status-error-codes

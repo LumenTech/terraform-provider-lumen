@@ -14,4 +14,4 @@ $ terraform destroy --auto-approve
 ```
 
 ## References
-<a id="1">[1]</a> http://apidocs.edge.lumen.com/#delete-an-instance
+<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/deleteInstance

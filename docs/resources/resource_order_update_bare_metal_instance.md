@@ -81,4 +81,4 @@ instance_description_updated = "Updated - Terraform demo instance"
 ```
 
 ## References
-<a id="1">[1]</a> API doc: http://apidocs.edge.lumen.com/#updating-an-instance
+<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/updateInstance

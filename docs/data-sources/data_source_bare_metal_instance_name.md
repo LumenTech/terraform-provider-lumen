@@ -65,4 +65,4 @@ instance_name = $instance_name
 ```
 
 ## References
-<a id="1">[1]</a> API: GET https://api.lumen.com/EdgeServices/v1/Compute/api/instances/:name
+<a id="1">[1]</a> API call: GET https://api.lumen.com/EdgeServices/v1/Compute/api/instances/:name

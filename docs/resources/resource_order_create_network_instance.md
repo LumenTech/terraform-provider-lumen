@@ -3,7 +3,7 @@
 | Resource_Order_Create_Network_Instance  | Details on network instance creation |
 
 ## Introduction
-This document provides deatils on resource order to create Lumen network instance(s).
+This document provides deatils on resource order to create Lumen network instance(s). The API details are provided in Ref [[1]](#1). In order to create a network resource, a network instance is created first, and then the network resource id will be used in creating the bare metal resource. Example payload for creating network instance is provide in Ref [[2]](#2).
 
 ## Example Usage
 `main.tf`
@@ -107,6 +107,9 @@ nw_instance_bandwidth = $nw_instance_bandwidth
 ```
 
 ## References
-<a id="1">[1]</a> API doc: http://apidocs.edge.lumen.com/#create-an-instance
+<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/addInstance
 
-<a id="2">[2]</a> API doc: http://apidocs.edge.lumen.com/#id-code-tables
+<a id="2">[2]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=code-samples
+
+<a id="3">[3]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=status-error-codes
+
