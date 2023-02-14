@@ -2,10 +2,10 @@ module terraform-provider-lumen
 
 go 1.17
 
-require (
-	//github.com/gomorpheus/morpheus-go-sdk v0.0.0-20210723110846-0e69e356ae26
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
-)
+//github.com/gomorpheus/morpheus-go-sdk v0.0.0-20210723110846-0e69e356ae26
+require github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
+
+require github.com/go-resty/resty/v2 v2.2.0
 
 require (
 	cloud.google.com/go v0.61.0 // indirect
@@ -13,11 +13,10 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.25.3 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/go-resty/resty/v2 v2.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
@@ -38,7 +37,7 @@ require (
 	github.com/hashicorp/terraform-json v0.12.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.3.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.11.2 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
@@ -59,7 +58,7 @@ require (
 	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20210326060303-6b1517762897 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
-	golang.org/x/sys v0.0.0-20210502180810-71e4cd670f79 // indirect
+	golang.org/x/sys v0.0.0-20220517195934-5e4e11fc645e // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/tools v0.0.0-20200713011307-fd294ab11aed // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
