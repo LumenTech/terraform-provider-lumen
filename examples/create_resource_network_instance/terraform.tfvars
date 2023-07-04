@@ -28,8 +28,5 @@ nw_plan_id = $nw_plan_id
 # Edge location for resource creation
 nw_instance_location = $nw_instance_location
 
-# Instance network type for resource creation
-nw_instance_network_type = $nw_instance_network_type
-
 # Edge bandwidth for resource creation
 nw_instance_bandwidth = $nw_instance_bandwidth

@@ -44,22 +44,12 @@ instance_type_id = $instance_type
 # Instance type code
 instance_type_code = $instance_type_code
 
-# Instance type name
-instance_type_name = $instance_type_name
-
 # Instance layout id
 instance_layout_id = $instance_layout_id
 
 # Instance plan id
 plan_id = $plan_id
 
-# Instance create user
-# create_user = $boolean(true/false)
-
 # Edge location for resource creation
 # This attribute is same for both bare-metal and network instances 
 instance_location = $instance_location
-
-# Instance network type for resource creation
-# This attribute is same for both bare-metal and network instances
-instance_network_type = $instance_network_type

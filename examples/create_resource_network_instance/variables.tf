@@ -63,8 +63,3 @@ variable "nw_instance_bandwidth" {
   description = "Lumen edge bandwidth"
   type = number
 }
-
-variable "nw_instance_network_type" {
-  description = "Lumen instance network type"
-  type = string
-}

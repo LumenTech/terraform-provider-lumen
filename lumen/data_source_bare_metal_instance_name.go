@@ -97,10 +97,6 @@ func DataSourceBareMetalInstanceName() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString},
 			},
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": {
 				Description: "Instance status",
 				Type:        schema.TypeString,
@@ -266,7 +262,6 @@ func PopulateSchemaInstanceNameResponse(
 		d.Set("plan_id", instanceDetails.Plan.ID)
 		d.Set("resource_pool_id", instanceDetails.Config["resourcePoolId"])
 		d.Set("environment", instanceDetails.Environment)
-		d.Set("version", instanceDetails.Version)
 		d.Set("status", instanceDetails.Status)
 		d.Set("labels", instanceDetails.Labels)
 

@@ -58,12 +58,6 @@ func ResourceNetworkInstance() *schema.Resource {
 				Optional:    true,
 				ForceNew:    true,
 			},
-			"instance_type_id": {
-				Description: "The instance type id to provision",
-				Type:        schema.TypeInt,
-				Optional:    true,
-				ForceNew:    true,
-			},
 			"instance_layout_id": {
 				Description: "The layout to provision the instance from",
 				Type:        schema.TypeInt,
@@ -94,20 +88,19 @@ func ResourceNetworkInstance() *schema.Resource {
 				Optional:    true,
 				ForceNew:    true,
 			},
-			"network_id": {
-				Description: "The instance network id",
-				Type:        schema.TypeString,
-				Computed:    true,
-				ForceNew:    true,
-			},
 			"status": {
 				Description: "Instance status",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_cidr": {
+			"network_cidr": {
 				Description: "Network instance CIDR",
 				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"network_resource_id": {
+				Description: "Network Resource Id",
+				Type:        schema.TypeFloat,
 				Computed:    true,
 			},
 			"transaction_id": {
@@ -146,11 +139,6 @@ func ResourceNetworkInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_owner": {
-				Description: "The instance owner",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -184,7 +172,6 @@ func ResourceNetworkInstanceCreate(
 	site := make(map[string]interface{})
 	instanceGroup := d.Get("group_id").(int)
 	site["id"] = instanceGroup
-	// Adding site to instance payload
 	instance["site"] = site
 
 	// Creating instance type payload
@@ -272,8 +259,8 @@ func ResourceNetworkInstanceCreate(
 		},
 		Timeout:      25 * time.Minute,
 		MinTimeout:   10 * time.Minute,
-		Delay:        4 * time.Minute,
-		PollInterval: 4 * time.Minute,
+		Delay:        2 * time.Minute,
+		PollInterval: 2 * time.Minute,
 	}
 	// Checking instance state to catch any errors
 	_, err = instanceStateConf.WaitForStateContext(ctx)
@@ -330,11 +317,6 @@ func ResourceNetworkInstanceRead(
 
 	// Populating schema with get instance response
 	d.Set("description", instanceDetails.Description)
-	d.Set("cloud_id", instanceDetails.Cloud["id"])
-	d.Set("group_id", instanceDetails.Group["id"])
-	d.Set("plan_id", instanceDetails.Plan.ID)
-	d.Set("instance_type_id", instanceDetails.InstanceType["id"])
-	d.Set("instance_layout_id", instanceDetails.Layout["id"])
 	d.Set("status", instanceDetails.Status)
 
 	// Setting instance bandwidth and location

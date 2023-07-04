@@ -3,7 +3,7 @@
 | Resource_Order_Create_Bare_Metal_Instance  | Details on bare metal instance creation |
 
 ## Introduction
-This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1). In order to create a bare metal resource, a network resource needs to be created first, and then the id from the created network resource will be used in creating the bare metal resource. Example payload for creating bare-metal instance is provide in Ref [[2]](#2).
+This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1) under section Request Body in the drop down "Instance Request - Bare Metal". In order to create a bare metal resource, a network resource needs to be created first, and then the id from the created network resource will be used in creating the bare metal resource. Example payload for creating bare-metal instance is provide in Ref [[2]](#2), under the section "Create An Instance Bare Metal - Request Body".
 
 ## Example Usage
 `main.tf`
@@ -24,7 +24,7 @@ resource "lumen_network_instance" "tf_nw_test" {
 
     location = var.instance_location
     bandwidth = var.nw_instance_bandwidth
-    network_type = var.instance_network_type
+    network_type = EDGE_COMPUTE_INTERNET
 
     tags = {
         name = "nw-tf-test"
@@ -62,7 +62,8 @@ resource "lumen_bare_metal_instance" "tf_bm_test" {
     # Instance custom configs
     location =  var.instance_location
     network_id = lumen_network_instance.tf_nw_test.network_id
-    network_type = var.instance_network_type
+    bare_metal_network_type = "EDGE_COMPUTE_VPC"
+    is_vpc_selectable = true
     # Instance tags
     tags = {
         name = "tf-test"
@@ -215,8 +216,8 @@ instance_network_type = $instance_network_type
 ```
 
 ## References
-<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/addInstance
+<a id="1">[1]</a> Lumen Developer API doc: https://developer.lumen.com/apis/edge-bare-metal#api-reference_edge-bare-metal-api_instances_api-instances_post
 
-<a id="2">[2]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=code-samples
+<a id="2">[2]</a> Lumen Developer API code samples: https://developer.lumen.com/apis/edge-bare-metal#code-samples
 
-<a id="3">[3]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=status-error-codes
+<a id="3">[3]</a> Lumen Developer API codes: https://developer.lumen.com/apis/edge-bare-metal#status-and-error-codes

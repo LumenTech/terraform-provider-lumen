@@ -3,7 +3,6 @@ package lumen
 import (
 	"context"
 	//"encoding/json"
-
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -55,11 +54,6 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 			},
-			"instance_cloud_name": {
-				Description: "The instance cloud name",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
 			"instance_type_id": {
 				Description: "The instance type id to provision",
 				Type:        schema.TypeString,
@@ -67,11 +61,6 @@ func ResourceBareMetalInstance() *schema.Resource {
 			},
 			"instance_type_code": {
 				Description: "The instance type layout code to provision",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
-			"instance_type_name": {
-				Description: "The instance type name to provision",
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
@@ -92,12 +81,17 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
-			"network_type": {
-				Description: "The instance network type",
+			"is_vpc_selectable": {
+				Description: "Vpc Selectable option",
+				Type:        schema.TypeBool,
+				Required:    true,
+			},
+			"bare_metal_network_type": {
+				Description: "The bare metal network type",
 				Type:        schema.TypeString,
 				Optional:    true,
 			},
-			"network_id": {
+			"network_resource_id": {
 				Description: "The network instance id",
 				Type:        schema.TypeString,
 				Required:    true,
@@ -250,11 +244,6 @@ func ResourceBareMetalInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_owner": {
-				Description: "Instance owner",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -290,20 +279,15 @@ func ResourceBareMetalInstanceCreate(
 	instanceDescription := d.Get("description").(string)
 	instance["description"] = instanceDescription
 
-	// Creating instance site details
+	// Adding instance site details to payload
 	site := make(map[string]interface{})
 	site["id"] = instanceGroupId
-	// Adding site to instance payload
 	instance["site"] = site
 
-	// Getting instance type id, code and name. Adding to instance payload.
+	// Adding instance type id and code.
 	instanceType := make(map[string]interface{})
-	instanceTypeId := d.Get("instance_type_id").(string)
-	instanceTypeCode := d.Get("instance_type_code").(string)
-	instanceTypeName := d.Get("instance_type_name").(string)
-	instanceType["id"] = instanceTypeId
-	instanceType["code"] = instanceTypeCode
-	instanceType["name"] = instanceTypeName
+	instanceType["id"] = d.Get("instance_type_id").(string)
+	instanceType["code"] = d.Get("instance_type_code").(string)
 	instance["instanceType"] = instanceType
 
 	// Getting instance layout id and adding to instance payload
@@ -323,22 +307,17 @@ func ResourceBareMetalInstanceCreate(
 
 	// Adding instance details to payload
 	payload["instance"] = instance
-	// Adding type to payload
-	payload["type"] = instanceTypeCode
 
 	// Creating instance config
 	config := make(map[string]interface{})
 
 	// Custom configs
-	edgeLocation := d.Get("location").(string)
-	networkId := d.Get("network_id").(string)
-	networkType := d.Get("network_type").(string)
-
 	customOptions := make(map[string]interface{})
-	customOptions["edgeLocation"] = edgeLocation
-	customOptions["networkId"] = networkId
-	customOptions["centuryLinkNetworkType"] = networkType
-	// Adding custom config to config
+	customOptions["edgeLocation"] = d.Get("location").(string)
+	customOptions["networkId"] = d.Get("network_resource_id").(string)
+	customOptions["centuryLinkNetworkType"] = d.Get("bare_metal_network_type").(string)
+	config["is_vpc_selectable"] = d.Get("is_vpc_selectable")
+	config["create_user"] = d.Get("create_user")
 	config["customOptions"] = customOptions
 
 	// Adding config to payload
@@ -468,7 +447,6 @@ func ResourceBareMetalInstanceRead(
 	d.Set("description", instanceDetails.Description)
 	d.Set("cloud_id", instanceDetails.Cloud["id"])
 	d.Set("group_id", instanceDetails.Group["id"])
-	d.Set("instance_type_id", instanceDetails.InstanceType["id"])
 	d.Set("instance_type_layout", instanceDetails.Layout["id"])
 	d.Set("plan_id", instanceDetails.Plan.ID)
 	d.Set("labels", instanceDetails.Labels)
@@ -529,7 +507,8 @@ func ResourceBareMetalInstanceDelete(
 	return diags
 }
 
-/* Function to update instance based on instance id.
+/*
+Function to update instance based on instance id.
 This updates instance name, description, labels, tags.
 */
 func ResourceBareMetalInstanceUpdate(

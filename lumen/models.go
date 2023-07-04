@@ -111,8 +111,7 @@ func parseStorageVolumes(volumes []interface{}) []map[string]interface{} {
 	return storageVolumes
 }
 
-/* Helper functions for network instance */
-// Helper function to populate custom configs in schema
+// Populate custom configs in network resource schema.
 func SetNetworkInstanceCustomConfigs(
 	instanceDetails *Instance,
 	d *schema.ResourceData) {
@@ -121,18 +120,10 @@ func SetNetworkInstanceCustomConfigs(
 	if v.Kind() == reflect.Map {
 		for _, key := range v.MapKeys() {
 			strct := v.MapIndex(key)
-			if key.Interface().(string) == "edgeLocation" {
-				d.Set("instance_location", strct.Interface().(string))
-			} else if key.Interface().(string) == "transactionId" {
+			if key.Interface().(string) == "transactionId" {
 				d.Set("transaction_id", strct.Interface().(string))
-			} else if key.Interface().(string) == "centuryLinkNetworkType" {
-				d.Set("network_type", strct.Interface().(string))
 			} else if key.Interface().(string) == "cidr" {
-				d.Set("instance_cidr", strct.Interface().(string))
-			} else if key.Interface().(string) == "edgeBandwidth" {
-				if _, ok := strct.Interface().(float64); ok {
-					d.Set("instance_bandwidth", strct.Interface().(float64))
-				}
+				d.Set("network_cidr", strct.Interface().(string))
 			} else if key.Interface().(string) == "network" {
 				if _, ok := strct.Interface().(interface{}); ok {
 					network := strct.Interface().(interface{})
@@ -141,7 +132,7 @@ func SetNetworkInstanceCustomConfigs(
 						for _, nwkey := range networkId.MapKeys() {
 							nwstrct := networkId.MapIndex(nwkey)
 							if nwkey.Interface().(string) == "id" {
-								d.Set("network_id", nwstrct.Interface().(string))
+								d.Set("network_resource_id", nwstrct.Interface().(float64))
 							}
 						}
 					}
@@ -151,7 +142,7 @@ func SetNetworkInstanceCustomConfigs(
 	}
 }
 
-// Helper function to populate timestamps in schema
+// Populate timestamps in network resource schema.
 func SetNetworkInstanceTimestamps(
 	instanceDetails *Instance,
 	d *schema.ResourceData) {
@@ -172,20 +163,8 @@ func SetNetworkInstanceUsers(
 			}
 		}
 	}
-
-	// Setting instance owner
-	valueOwner := reflect.ValueOf(instanceDetails.CreatedBy)
-	if valueOwner.Kind() == reflect.Map {
-		for _, key := range valueOwner.MapKeys() {
-			strct := valueOwner.MapIndex(key)
-			if key.Interface().(string) == "username" {
-				d.Set("instance_owner", strct.Interface().(string))
-			}
-		}
-	}
 }
 
-/* Helper functions for bare-metal instance */
 // Helper function to populate custom configs in schema
 func SetBareMetalInstanceCustomConfigs(
 	instanceDetails *Instance,

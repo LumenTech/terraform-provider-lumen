@@ -14,7 +14,7 @@ resource "lumen_network_instance" "tf_nw_test" {
 
     location = var.instance_location
     bandwidth = var.nw_instance_bandwidth
-    network_type = var.instance_network_type
+    network_type = "EDGE_COMPUTE_INTERNET"
 
     tags = {
         name = "nw-tf-test"
@@ -28,8 +28,8 @@ output "tf_nw_test_instance" {
     description = "Lumen network instance details"
 }
 
-output "nw_id" {
-    value = lumen_network_instance.tf_nw_test.network_id
+output "network_resource_id" {
+    value = lumen_network_instance.tf_nw_test.network_resource_id
     description = "Lumen network id"
     sensitive = true
 }
@@ -41,17 +41,22 @@ resource "lumen_bare_metal_instance" "tf_bm_test" {
     description = var.instance_description
     group_id = var.group_id
     cloud_id = var.cloud_id
-    plan_id = var.plan_id
+
     # Instance Type
     instance_type_id = var.instance_type_id
     instance_type_code = var.instance_type_code
-    instance_type_name = var.instance_type_name
     instance_layout_id = var.instance_layout_id
 
+    # Server plan id
+    plan_id = var.plan_id
+
     # Instance custom configs
-    location = lumen_network_instance.tf_nw_test.instance_location
-    network_id = lumen_network_instance.tf_nw_test.network_id
-    network_type = var.instance_network_type
+    location = var.instance_location
+    network_resource_id = lumen_network_instance.tf_nw_test.network_resource_id
+    bare_metal_network_type = "EDGE_COMPUTE_VPC"
+    is_vpc_selectable = true
+    create_user = true
+
     # Instance tags
     tags = {
         name = "tf-test"
