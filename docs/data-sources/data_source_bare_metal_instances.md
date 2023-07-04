@@ -58,4 +58,4 @@ lumen_api_refresh_token = $lumen_api_refresh_token
 ```
 
 ## References
-<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/listInstances
+<a id="1">[1]</a> Lumen Developer API doc: https://developer.lumen.com/apis/edge-bare-metal#api-reference_edge-bare-metal-api_instances_api-instances_get

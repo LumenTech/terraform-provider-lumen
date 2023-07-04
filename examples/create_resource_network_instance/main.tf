@@ -13,7 +13,7 @@ resource "lumen_network_instance" "tf_nw_test" {
 
     location = var.nw_instance_location
     bandwidth = var.nw_instance_bandwidth
-    network_type = var.nw_instance_network_type
+    network_type = "EDGE_COMPUTE_INTERNET"
 
     tags = {
         name = "nw-tf-test"

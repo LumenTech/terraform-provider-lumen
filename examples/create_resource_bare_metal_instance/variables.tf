@@ -82,11 +82,6 @@ variable "instance_type_code" {
   type = string
 }
 
-variable "instance_type_name" {
-  description = "Instance type name"
-  type = string
-}
-
 variable "instance_layout_id" {
   description = "Instance layout id"
   type = number
@@ -97,11 +92,6 @@ variable "plan_id" {
 }
 
 variable "instance_location" {
-  type = string
   description = "Lumen edge location"
-}
-
-variable "instance_network_type" {
-  description = "Lumen instance network type"
   type = string
 }

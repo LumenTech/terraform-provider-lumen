@@ -68,4 +68,4 @@ instance_id = $instance_id
 ```
 
 ## References
-<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/getInstance
+<a id="1">[1]</a> Lumen Developer API doc: https://developer.lumen.com/apis/edge-bare-metal#api-reference_edge-bare-metal-api_instances_instances-id_get

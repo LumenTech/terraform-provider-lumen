@@ -27,11 +27,6 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"description": {
-				Description: "The instance description",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 			"cloud_id": {
 				Description: "The ID of the cloud associated with the instance",
 				Type:        schema.TypeInt,
@@ -57,7 +52,7 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 				Type:        schema.TypeInt,
 				Computed:    true,
 			},
-			"instance_location": {
+			"location": {
 				Description: "The instance location",
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -81,10 +76,6 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString},
-			},
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"status": {
 				Description: "Instance status",
@@ -190,11 +181,6 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_owner": {
-				Description: "The instance owner",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -242,13 +228,11 @@ func PopulateSchemaInstanceIdResponse(
 	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)
-		d.Set("description", instanceDetails.Description)
 		d.Set("cloud_id", instanceDetails.Cloud["id"])
 		d.Set("group_id", instanceDetails.Group["id"])
 		d.Set("instance_type_id", instanceDetails.InstanceType["id"])
 		d.Set("instance_layout_id", instanceDetails.Layout["id"])
 		d.Set("plan_id", instanceDetails.Plan.ID)
-		d.Set("version", instanceDetails.Version)
 		d.Set("status", instanceDetails.Status)
 		d.Set("labels", instanceDetails.Labels)
 

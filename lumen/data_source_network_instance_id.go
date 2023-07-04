@@ -2,6 +2,7 @@ package lumen
 
 import (
 	"context"
+	"reflect"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -61,22 +62,22 @@ func DataSourceNetworkInstanceId() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"location": {
+			"instance_location": {
 				Description: "The network instance location",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_type": {
+			"instance_type_code": {
 				Description: "The network instance type",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"instance_bandwidth": {
+			"network_bandwidth": {
 				Description: "The network instance bandwidth",
 				Type:        schema.TypeFloat,
 				Computed:    true,
 			},
-			"instance_cidr": {
+			"network_cidr": {
 				Description: "CIDR associated with network instance",
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -84,6 +85,11 @@ func DataSourceNetworkInstanceId() *schema.Resource {
 			"network_type": {
 				Description: "The network type associated with the resource",
 				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"network_resource_id": {
+				Description: "Network resource id",
+				Type:        schema.TypeFloat,
 				Computed:    true,
 			},
 			"transaction_id": {
@@ -103,11 +109,6 @@ func DataSourceNetworkInstanceId() *schema.Resource {
 			},
 			"instance_created_by": {
 				Description: "User who created the instance",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"instance_owner": {
-				Description: "The instance owner",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -163,9 +164,24 @@ func PopulateSchemaNetworkInstanceIdResponse(
 		d.Set("instance_type_id", instanceDetails.InstanceType["id"])
 		d.Set("instance_layout_id", instanceDetails.Layout["id"])
 		d.Set("status", instanceDetails.Status)
-		d.Set("instance_type", instanceDetails.InstanceType["name"])
+		d.Set("instance_type_code", instanceDetails.InstanceType["code"])
 
-		// Setting instance bandwidth and location
+		customOptions := instanceDetails.Config["customOptions"]
+		v := reflect.ValueOf(customOptions)
+		if v.Kind() == reflect.Map {
+			for _, key := range v.MapKeys() {
+				strct := v.MapIndex(key)
+				if key.Interface().(string) == "edgeLocation" {
+					d.Set("instance_location", strct.Interface().(string))
+				} else if key.Interface().(string) == "centuryLinkNetworkType" {
+					d.Set("network_type", strct.Interface().(string))
+				} else if key.Interface().(string) == "edgeBandwidth" {
+					d.Set("network_bandwidth", strct.Interface().(float64))
+				}
+			}
+		}
+
+		// Setting transaction id, cidr, network_resource_id
 		SetNetworkInstanceCustomConfigs(instanceDetails, d)
 
 		// Setting timestamps for instance creation, last updated
@@ -173,5 +189,6 @@ func PopulateSchemaNetworkInstanceIdResponse(
 
 		// Setting user for instance creation
 		SetNetworkInstanceUsers(instanceDetails, d)
+
 	}
 }

@@ -2,7 +2,7 @@ package lumen
 
 import (
 	"context"
-	"net"
+	"log"
 	"reflect"
 	"strconv"
 	"time"
@@ -30,11 +30,6 @@ func DataSourceBareMetalAllInstances() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"description": {
-							Description: "The instance description",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
 						"cloud_id": {
 							Description: "Cloud Id associated with the instance",
 							Type:        schema.TypeInt,
@@ -58,11 +53,6 @@ func DataSourceBareMetalAllInstances() *schema.Resource {
 						"plan_id": {
 							Description: "Service plan associated with instance",
 							Type:        schema.TypeInt,
-							Computed:    true,
-						},
-						"environment": {
-							Description: "Environment in which the instance is provisioned",
-							Type:        schema.TypeString,
 							Computed:    true,
 						},
 						"version": {
@@ -128,21 +118,21 @@ func DataSourceBareMetalAllInstancesRead(
 
 func FlattenInstances(instanceList *[]Instance) []interface{} {
 	if instanceList != nil {
-		instances := make([]interface{}, len(*instanceList), len(*instanceList))
+		instances := make([]interface{}, len(*instanceList)) //, len(*instanceList))
 
 		for i, instanceItem := range *instanceList {
-			if instanceItem.InstanceType["name"] != "Lumen Network" {
+			// log.Printf("Shib- instanceType: %s", instanceItem.InstanceType)
+			if instanceItem.InstanceType["category"] == "os" {
+				log.Printf("Shib- instanceType category: %s", instanceItem.InstanceType["category"])
 				instance := make(map[string]interface{})
 				// Populating instance details
 				instance["id"] = instanceItem.ID
 				instance["name"] = instanceItem.Name
-				instance["description"] = instanceItem.Description
 				instance["cloud_id"] = instanceItem.Cloud["id"]
 				instance["group_id"] = instanceItem.Group["id"]
 				instance["plan_id"] = instanceItem.Plan.ID
 				instance["instance_type_id"] = instanceItem.InstanceType["id"]
 				instance["instance_layout_id"] = instanceItem.Layout["id"]
-				instance["environment"] = instanceItem.Environment
 				instance["version"] = instanceItem.Version
 				instance["status"] = instanceItem.Status
 
@@ -159,13 +149,15 @@ func FlattenInstances(instanceList *[]Instance) []interface{} {
 				}
 
 				// Setting instance ip address
-				envVars := instanceItem.EnvironmentVariables
-				for _, envVarsItems := range *envVars {
-					envVarIP := envVarsItems["value"].(string)
-					varIp := net.ParseIP(envVarIP)
-					if varIp.To4() != nil {
-						instance["instance_ip"] = envVarIP
-						break
+				connectionInfo := instanceItem.ConnectionInfo
+				data := reflect.ValueOf(connectionInfo[0])
+				if data.Kind() == reflect.Map {
+					for _, key := range data.MapKeys() {
+						strct := data.MapIndex(key)
+						if key.Interface().(string) == "ip" {
+							instance["instance_ip"] = strct.Interface().(string)
+							break
+						}
 					}
 				}
 				// Adding instance details

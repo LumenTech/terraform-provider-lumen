@@ -12,7 +12,7 @@ $ git clone https://github.com/CenturyLink/terraform-provider-lumen.git
 ## Setup and install Lumen Terraform Provider
 Next, setup and install terraform provider lumen technologies.
 ```shell
-$ cd terrform-provider-lumen
+$ cd terraform-provider-lumen
 $ make setup
 $ make install
 ```

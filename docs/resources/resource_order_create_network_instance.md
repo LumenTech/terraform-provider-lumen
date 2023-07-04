@@ -23,7 +23,7 @@ resource "lumen_network_instance" "tf_nw_test" {
 
     location = var.nw_instance_location
     bandwidth = var.nw_instance_bandwidth
-    network_type = var.nw_instance_network_type
+    network_type = EDGE_COMPUTE_INTERNET
 
     tags = {
         name = "nw-tf-test"
@@ -107,9 +107,8 @@ nw_instance_bandwidth = $nw_instance_bandwidth
 ```
 
 ## References
-<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/addInstance
+<a id="1">[1]</a> Lumen Developer API doc: https://developer.lumen.com/apis/edge-bare-metal#api-reference_edge-bare-metal-api_instances_api-instances_post
 
-<a id="2">[2]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=code-samples
+<a id="2">[2]</a> Lumen Developer API code samples: https://developer.lumen.com/apis/edge-bare-metal#code-samples
 
-<a id="3">[3]</a> API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=status-error-codes
-
+<a id="3">[3]</a> Lumen Developer API codes: https://developer.lumen.com/apis/edge-bare-metal#status-and-error-codes

@@ -45,11 +45,6 @@ func DataSourceNetworkAllInstances() *schema.Resource {
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
-						"instance_type_id": {
-							Description: "The type of instance to provision",
-							Type:        schema.TypeInt,
-							Computed:    true,
-						},
 						"instance_layout_id": {
 							Description: "The instance layout id",
 							Type:        schema.TypeInt,
@@ -70,17 +65,22 @@ func DataSourceNetworkAllInstances() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"instance_type": {
+						"instance_type_code": {
 							Description: "The network instance type",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"instance_bandwidth": {
+						"instance_type_id": {
+							Description: "The type of instance to provision",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
+						"network_bandwidth": {
 							Description: "The network instance bandwidth",
 							Type:        schema.TypeFloat,
 							Computed:    true,
 						},
-						"instance_cidr": {
+						"network_cidr": {
 							Description: "CIDR associated with network instance",
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -163,7 +163,7 @@ func FlattenNetworkInstances(instanceList *[]Instance) []interface{} {
 	if instanceList != nil {
 		instances := make([]interface{}, len(*instanceList)) //, len(*instanceList))
 		for i, instanceItem := range *instanceList {
-			if instanceItem.InstanceType["name"] == "Lumen Network" {
+			if instanceItem.InstanceType["code"] == "lumen-network-ip-block" {
 				instance := make(map[string]interface{})
 				// Populating instance details
 				instance["id"] = instanceItem.ID
@@ -173,9 +173,9 @@ func FlattenNetworkInstances(instanceList *[]Instance) []interface{} {
 				instance["group_id"] = instanceItem.Group["id"]
 				instance["plan_id"] = instanceItem.Plan.ID
 				instance["instance_type_id"] = instanceItem.InstanceType["id"]
+				instance["instance_type_code"] = instanceItem.InstanceType["code"]
 				instance["instance_layout_id"] = instanceItem.Layout["id"]
 				instance["status"] = instanceItem.Status
-				instance["instance_type"] = instanceItem.InstanceType["name"]
 
 				// Setting location, bandwidth
 				customOptions := instanceItem.Config["customOptions"]
@@ -190,10 +190,10 @@ func FlattenNetworkInstances(instanceList *[]Instance) []interface{} {
 						} else if key.Interface().(string) == "centuryLinkNetworkType" {
 							instance["network_type"] = strct.Interface().(string)
 						} else if key.Interface().(string) == "cidr" {
-							instance["instance_cidr"] = strct.Interface().(string)
+							instance["network_cidr"] = strct.Interface().(string)
 						} else if key.Interface().(string) == "edgeBandwidth" {
 							if _, ok := strct.Interface().(float64); ok {
-								instance["instance_bandwidth"] = strct.Interface().(float64)
+								instance["network_bandwidth"] = strct.Interface().(float64)
 							}
 						}
 					}

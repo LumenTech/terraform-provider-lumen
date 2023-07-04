@@ -31,7 +31,7 @@ output "instance" {
 - instance_layout_id (Integer) "The layout to provision the instance from"
 - plan_id (Integer) "The service plan associated with the instance"
 - status (String) "Instance status"
-- instance_location (String) "The instance location"
+- location (String) "The instance location"
 - instance_ip (String) "The instance ip address"
 - network_id (Integer) "The network id associated with the instance"
 - network_type (String) "The network type associated with the instance"
@@ -64,4 +64,4 @@ instance_id = $instance_id
 ```
 
 ## References
-<a id="1">[1]</a> Swagger API doc: https://apimarketplace.lumen.com/api/edge-bare-metal?tab=document-specification#/Instances/getInstance
+<a id="1">[1]</a> Lumen Developer API doc: https://developer.lumen.com/apis/edge-bare-metal#api-reference_edge-bare-metal-api_instances_instances-id_get
