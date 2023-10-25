@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const CustomerDeprecationNotice = "Function/Field is deprecated once the customer has migrated to the new version of Lumen Edge Bare Metal API."
+const CustomerDeprecationNotice = "Resource/Argument is deprecated once the customer has migrated to the new version of Lumen Edge Bare Metal API."
 
 // Provider -
 func Provider() *schema.Provider {
