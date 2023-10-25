@@ -13,7 +13,8 @@ import (
 
 func DataSourceNetworkAllInstances() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceNetworkAllInstancesRead,
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceNetworkAllInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"instances": {
 				Type:     schema.TypeList,

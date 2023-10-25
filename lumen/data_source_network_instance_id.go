@@ -14,8 +14,9 @@ func DataSourceNetworkInstanceId() *schema.Resource {
 	instance details based on instance id.
 	*/
 	return &schema.Resource{
-		Description: "Provides Lumen network instance details based on instance id",
-		ReadContext: DataSourceNetworkInstanceIdRead,
+		Description:        "Provides Lumen network instance details based on instance id",
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceNetworkInstanceIdRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Description: "IDs of network instances created",
