@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const CustomerDeprecationNotice = "Resource/Argument is deprecated once the customer has migrated to the new version of Lumen Edge Bare Metal API."
+
 // Provider -
 func Provider() *schema.Provider {
 	/* User authentication schema */
@@ -29,10 +31,11 @@ func Provider() *schema.Provider {
 			},
 			"api_access_token": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Lumen API access token",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_ACCESS_TOKEN", nil),
+				Deprecated:  CustomerDeprecationNotice,
 			},
 			"api_refresh_token": {
 				Type:        schema.TypeString,
@@ -40,6 +43,7 @@ func Provider() *schema.Provider {
 				Sensitive:   true,
 				Description: "Lumen API refresh token",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_REFRESH_TOKEN", nil),
+				Deprecated:  CustomerDeprecationNotice,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -94,9 +98,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 	// Lumen API access token
 	apiAccessToken := d.Get("api_access_token").(string)
-	if apiAccessToken == "" {
-		return nil, diag.FromErr(fmt.Errorf("Lumen api access token cannot be empty"))
-	}
+	//if apiAccessToken == "" {
+	//	return nil, diag.FromErr(fmt.Errorf("Lumen api access token cannot be empty"))
+	//}
 	// Lumen API refresh token
 	apiRefreshToken := d.Get("api_refresh_token").(string)
 	/*

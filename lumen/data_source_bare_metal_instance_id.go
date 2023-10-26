@@ -14,8 +14,9 @@ func DataSourceBareMetalInstanceId() *schema.Resource {
 		 order based on instance id
 	*/
 	return &schema.Resource{
-		Description: "Provides Lumen instance details",
-		ReadContext: DataSourceBareMetalInstanceIdRead,
+		Description:        "Provides Lumen instance details",
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceBareMetalInstanceIdRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Description: "The ID of the instance",

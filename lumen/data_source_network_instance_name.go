@@ -14,8 +14,9 @@ func DataSourceNetworkInstanceName() *schema.Resource {
 	read based on instance name.
 	*/
 	return &schema.Resource{
-		Description: "Provides Lumen network instance details based on instance name",
-		ReadContext: DataSourceNetworkInstanceNameRead,
+		Description:        "Provides Lumen network instance details based on instance name",
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceNetworkInstanceNameRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Description: "The network instance name",

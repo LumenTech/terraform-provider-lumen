@@ -12,11 +12,12 @@ import (
 
 func ResourceBareMetalInstance() *schema.Resource {
 	return &schema.Resource{
-		Description:   "Creates Lumen instance resource",
-		CreateContext: ResourceBareMetalInstanceCreate,
-		ReadContext:   ResourceBareMetalInstanceRead,
-		UpdateContext: ResourceBareMetalInstanceUpdate,
-		DeleteContext: ResourceBareMetalInstanceDelete,
+		Description:        "Creates Lumen instance resource",
+		DeprecationMessage: CustomerDeprecationNotice,
+		CreateContext:      ResourceBareMetalInstanceCreate,
+		ReadContext:        ResourceBareMetalInstanceRead,
+		UpdateContext:      ResourceBareMetalInstanceUpdate,
+		DeleteContext:      ResourceBareMetalInstanceDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
 			Read:   schema.DefaultTimeout(30 * time.Minute),

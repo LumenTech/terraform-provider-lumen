@@ -15,8 +15,9 @@ func DataSourceBareMetalInstanceName() *schema.Resource {
 		 details based on instance name.
 	*/
 	return &schema.Resource{
-		Description: "Provides Lumen instance details based on instance name",
-		ReadContext: DataSourceBareMetalInstanceNameRead,
+		Description:        "Provides Lumen instance details based on instance name",
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceBareMetalInstanceNameRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Description: "Instance Name",
