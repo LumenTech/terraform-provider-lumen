@@ -35,13 +35,13 @@ func NewBareMetalClient(username, password, account string) *BareMetalClient {
 	}
 }
 
-func (bm *BareMetalClient) GetLocations() ([]bare_metal.Location, error) {
+func (bm *BareMetalClient) GetLocations() (bare_metal.Locations, error) {
 	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations", bm.BaseURL))
 	if err != nil || !resp.IsSuccess() {
 		return nil, errors.New("bare metal api failure")
 	}
 
-	var locations []bare_metal.Location
+	var locations bare_metal.Locations
 	if jsonErr := json.Unmarshal(resp.Body(), &locations); jsonErr != nil {
 		return nil, errors.New("unable to parse location response")
 	}

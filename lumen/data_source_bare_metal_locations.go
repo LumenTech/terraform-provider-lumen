@@ -8,15 +8,18 @@ import (
 
 func DataSourceBareMetalLocations() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides the list of bare metal locations",
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			bmClient := i.(*Client).BareMetal
 			locations, err := bmClient.GetLocations()
 			if err != nil {
 				return diag.FromErr(err)
 			}
-			if err := data.Set("locations", locations); err != nil {
+
+			if err := data.Set("locations", locations.ToMapList()); err != nil {
 				return diag.FromErr(err)
 			}
+			data.SetId("locations")
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
