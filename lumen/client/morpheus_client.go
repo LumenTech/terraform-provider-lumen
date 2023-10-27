@@ -227,14 +227,14 @@ func (client *MorpheusClient) Execute(req *morpheus.Request) (*morpheus.Response
 	if httpMethod == "POST" || httpMethod == "PUT" {
 		// FormData uses application/x-www-form-urlencoded
 		if req.FormData != nil {
-			log.Printf("REQUEST FORM DATA: ", req.FormData)
+			log.Printf("REQUEST FORM DATA: %s", req.FormData)
 			restyReq.SetFormData(req.FormData)
 			if restyReq.Header["Content-Type"] == nil {
 				restyReq.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 			}
 		}
 		if req.Body != nil {
-			log.Printf("REQUEST BODY: ", req.Body)
+			log.Printf("REQUEST BODY: %s", req.Body)
 			restyReq.SetBody(req.Body)
 			if restyReq.Header["Content-Type"] == nil {
 				restyReq.SetHeader("Content-Type", "application/json")
