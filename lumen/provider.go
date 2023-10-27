@@ -43,7 +43,7 @@ func Provider() *schema.Provider {
 			},
 			"account_alias": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Lumen customer account alias",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_ALIAS", nil),

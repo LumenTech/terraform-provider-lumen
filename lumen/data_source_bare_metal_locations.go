@@ -1,12 +1,24 @@
 package lumen
 
 import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DataSourceBareMetalLocations() *schema.Resource {
 	return &schema.Resource{
-		//ReadContext: GetLocations,
+		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+			bmClient := i.(*Client).BareMetal
+			locations, err := bmClient.GetLocations()
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if err := data.Set("locations", locations); err != nil {
+				return diag.FromErr(err)
+			}
+			return nil
+		},
 		Schema: map[string]*schema.Schema{
 			"locations": {
 				Type:     schema.TypeList,
