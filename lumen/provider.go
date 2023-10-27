@@ -41,6 +41,13 @@ func Provider() *schema.Provider {
 				Description: "Lumen API refresh token",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_REFRESH_TOKEN", nil),
 			},
+			"account_alias": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "Lumen customer account alias",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_ALIAS", nil),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			/*
@@ -69,6 +76,7 @@ func Provider() *schema.Provider {
 			"lumen_bare_metal_instances":     DataSourceBareMetalAllInstances(),
 			"lumen_bare_metal_instance_id":   DataSourceBareMetalInstanceId(),
 			"lumen_bare_metal_instance_name": DataSourceBareMetalInstanceName(),
+			"lumen_bare_metal_locations":     DataSourceBareMetalLocations(),
 			"lumen_network_instances":        DataSourceNetworkAllInstances(),
 			"lumen_network_instance_id":      DataSourceNetworkInstanceId(),
 			"lumen_network_instance_name":    DataSourceNetworkInstanceName(),
