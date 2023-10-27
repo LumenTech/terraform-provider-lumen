@@ -2,8 +2,12 @@ module terraform-provider-lumen
 
 go 1.17
 
-//github.com/gomorpheus/morpheus-go-sdk v0.0.0-20210723110846-0e69e356ae26
-require github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
+require (
+	github.com/go-resty/resty/v2 v2.2.0
+	github.com/hashicorp/go-uuid v1.0.1
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
+	github.com/stretchr/testify v1.8.4
+)
 
 require (
 	cloud.google.com/go v0.61.0 // indirect
@@ -15,7 +19,6 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/go-resty/resty/v2 v2.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
@@ -28,7 +31,6 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.1 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
-	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.3.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
@@ -49,8 +51,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.8.4 // indirect
