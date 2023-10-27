@@ -15,7 +15,8 @@ import (
 
 func DataSourceBareMetalAllInstances() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: DataSourceBareMetalAllInstancesRead,
+		DeprecationMessage: CustomerDeprecationNotice,
+		ReadContext:        DataSourceBareMetalAllInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"instances": {
 				Type:     schema.TypeList,

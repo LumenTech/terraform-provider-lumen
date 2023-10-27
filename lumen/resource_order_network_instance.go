@@ -15,10 +15,11 @@ func ResourceNetworkInstance() *schema.Resource {
 	/* Return schema to create,
 	read and delete network instance*/
 	return &schema.Resource{
-		Description:   "Lumen network resources",
-		CreateContext: ResourceNetworkInstanceCreate,
-		ReadContext:   ResourceNetworkInstanceRead,
-		DeleteContext: ResourceNetworkInstanceDelete,
+		Description:        "Lumen network resources",
+		DeprecationMessage: CustomerDeprecationNotice,
+		CreateContext:      ResourceNetworkInstanceCreate,
+		ReadContext:        ResourceNetworkInstanceRead,
+		DeleteContext:      ResourceNetworkInstanceDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(15 * time.Minute),
