@@ -2,6 +2,9 @@ package lumen
 
 import (
 	"context"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
+
 	//"encoding/json"
 	"time"
 
@@ -259,7 +262,7 @@ func ResourceBareMetalInstanceCreate(
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	// payload
 	payload := make(map[string]interface{})
@@ -356,13 +359,13 @@ func ResourceBareMetalInstanceCreate(
 		payload["volumes"] = parseStorageVolumes(d.Get("volumes").([]interface{}))
 	}
 
-	req := &Request{Body: payload}
+	req := &morpheus.Request{Body: payload}
 	//slcB, _ := json.Marshal(req.Body)
 	resp, err := c.CreateInstance(req)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	instanceresult := resp.Result.(*CreateInstanceResult)
+	instanceresult := resp.Result.(*client.CreateInstanceResult)
 	instanceDetails := instanceresult.Instance
 
 	// Instance state confirmation
@@ -371,11 +374,11 @@ func ResourceBareMetalInstanceCreate(
 		Target:  []string{"running", "failed", "warning"},
 		Refresh: func() (interface{}, string, error) {
 			instancedetails, err := c.GetInstance(
-				instanceDetails.ID, &Request{})
+				instanceDetails.ID, &morpheus.Request{})
 			if err != nil {
 				return "", "", err
 			}
-			result := instancedetails.Result.(*GetInstanceResult)
+			result := instancedetails.Result.(*client.GetInstanceResult)
 			instance := result.Instance
 			return result, instance.Status, nil
 
@@ -411,16 +414,16 @@ func ResourceBareMetalInstanceRead(
 
 	// declaring variables
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	instanceid := d.Id()
 	instancename := d.Get("name").(string)
 	if instanceid != "" {
-		resp, err = c.GetInstance(toInt64(instanceid), &Request{})
+		resp, err = c.GetInstance(toInt64(instanceid), &morpheus.Request{})
 	} else if instancename != "" {
 		resp, err = c.FindInstanceByName(instancename)
 	} else {
@@ -437,7 +440,7 @@ func ResourceBareMetalInstanceRead(
 	}
 
 	// Storing resource data
-	result := resp.Result.(*GetInstanceResult)
+	result := resp.Result.(*client.GetInstanceResult)
 	instanceDetails := result.Instance
 	if instanceDetails == nil {
 		return diag.Errorf("ERROR: Instance details not retrieved in response data")
@@ -483,14 +486,14 @@ func ResourceBareMetalInstanceDelete(
 
 	// To collect errors, response and warnings
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	instanceid := d.Id()
-	instanceDelRequest := &Request{
+	instanceDelRequest := &morpheus.Request{
 		QueryParams: map[string]string{},
 	}
 
@@ -521,7 +524,7 @@ func ResourceBareMetalInstanceUpdate(
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	id := d.Id()
 
@@ -591,13 +594,13 @@ func ResourceBareMetalInstanceUpdate(
 	payload["instance"] = instancePayload
 
 	// API request
-	morphRequest := &Request{Body: payload}
+	morphRequest := &morpheus.Request{Body: payload}
 	resp, err := c.UpdateInstance(toInt64(id), morphRequest)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	updateInstanceResult := resp.Result.(*UpdateInstanceResult)
+	updateInstanceResult := resp.Result.(*client.UpdateInstanceResult)
 	instanceDetails := updateInstanceResult.Instance
 
 	// Updated resource successfully

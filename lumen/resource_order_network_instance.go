@@ -2,6 +2,8 @@ package lumen
 
 import (
 	"context"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -152,7 +154,7 @@ func ResourceNetworkInstanceCreate(
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	// Payload
 	payload := make(map[string]interface{})
@@ -233,13 +235,13 @@ func ResourceNetworkInstanceCreate(
 	}
 
 	// Sending request to create network instance
-	req := &Request{Body: payload}
+	req := &morpheus.Request{Body: payload}
 	//slcB, _ := json.Marshal(req.Body)
 	resp, err := c.CreateInstance(req)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	instanceresult := resp.Result.(*CreateInstanceResult)
+	instanceresult := resp.Result.(*client.CreateInstanceResult)
 	instanceDetails := instanceresult.Instance
 
 	// Instance state confirmation
@@ -248,11 +250,11 @@ func ResourceNetworkInstanceCreate(
 		Target:  []string{"running", "failed", "warning"},
 		Refresh: func() (interface{}, string, error) {
 			instancedetails, err := c.GetInstance(
-				instanceDetails.ID, &Request{})
+				instanceDetails.ID, &morpheus.Request{})
 			if err != nil {
 				return "", "", err
 			}
-			result := instancedetails.Result.(*GetInstanceResult)
+			result := instancedetails.Result.(*client.GetInstanceResult)
 			instance := result.Instance
 			return result, instance.Status, nil
 
@@ -284,16 +286,16 @@ func ResourceNetworkInstanceRead(
 
 	// declaring variables
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	instanceId := d.Id()
 	instanceName := d.Get("name").(string)
 	if instanceId != "" {
-		resp, err = c.GetInstance(toInt64(instanceId), &Request{})
+		resp, err = c.GetInstance(toInt64(instanceId), &morpheus.Request{})
 	} else if instanceName != "" {
 		resp, err = c.FindInstanceByName(instanceName)
 	} else {
@@ -309,7 +311,7 @@ func ResourceNetworkInstanceRead(
 	}
 
 	// Storing response
-	result := resp.Result.(*GetInstanceResult)
+	result := resp.Result.(*client.GetInstanceResult)
 	instanceDetails := result.Instance
 	if instanceDetails == nil {
 		return diag.Errorf("ERROR: Instance details not retrieved in response data")
@@ -338,14 +340,14 @@ func ResourceNetworkInstanceDelete(
 
 	// To collect errors, response and warnings
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	instanceId := d.Id()
-	instanceDelRequest := &Request{
+	instanceDelRequest := &morpheus.Request{
 		QueryParams: map[string]string{},
 	}
 

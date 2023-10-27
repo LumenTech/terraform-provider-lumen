@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"terraform-provider-lumen/lumen/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -113,7 +114,7 @@ func parseStorageVolumes(volumes []interface{}) []map[string]interface{} {
 
 // Populate custom configs in network resource schema.
 func SetNetworkInstanceCustomConfigs(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	customOptions := instanceDetails.Config["customOptions"]
 	v := reflect.ValueOf(customOptions)
@@ -144,7 +145,7 @@ func SetNetworkInstanceCustomConfigs(
 
 // Populate timestamps in network resource schema.
 func SetNetworkInstanceTimestamps(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	d.Set("date_created", instanceDetails.DateCreated)
 	d.Set("last_updated", instanceDetails.LastUpdated)
@@ -152,7 +153,7 @@ func SetNetworkInstanceTimestamps(
 
 // Helper function to populate instance owner and creator
 func SetNetworkInstanceUsers(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	valueCreatedBy := reflect.ValueOf(instanceDetails.CreatedBy)
 	if valueCreatedBy.Kind() == reflect.Map {
@@ -167,7 +168,7 @@ func SetNetworkInstanceUsers(
 
 // Helper function to populate custom configs in schema
 func SetBareMetalInstanceCustomConfigs(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	customOptions := instanceDetails.Config["customOptions"]
 	v := reflect.ValueOf(customOptions)
@@ -187,7 +188,7 @@ func SetBareMetalInstanceCustomConfigs(
 
 // Helper function to populate connection info in schmea
 func SetBareMetalInstanceConnectionInfo(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	connectionInfo := instanceDetails.ConnectionInfo
 	data := reflect.ValueOf(connectionInfo[0])
@@ -204,7 +205,7 @@ func SetBareMetalInstanceConnectionInfo(
 
 // Helper function to populate timestamps in schema
 func SetBareMetalInstanceTimestamps(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	d.Set("date_created", instanceDetails.DateCreated)
 	d.Set("last_updated", instanceDetails.LastUpdated)
@@ -212,7 +213,7 @@ func SetBareMetalInstanceTimestamps(
 
 // Helper function to populate instance owner and creator
 func SetBareMetalInstanceUsers(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	// Setting instance creator
 	valueCreatedBy := reflect.ValueOf(instanceDetails.CreatedBy)
@@ -239,7 +240,7 @@ func SetBareMetalInstanceUsers(
 
 // Helper function to populate volumes in schema
 func SetBareMetalInstanceVolumes(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	volumes := make(map[string]interface{})
 	if instanceDetails.Volumes != nil {
@@ -257,7 +258,7 @@ func SetBareMetalInstanceVolumes(
 
 // Helper function to populate tags in schema
 func SetBareMetalInstanceTags(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	tags := make(map[string]interface{})
 	if instanceDetails.Tags != nil {

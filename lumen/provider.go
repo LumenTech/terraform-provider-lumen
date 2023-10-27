@@ -103,6 +103,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		if apiRefreshToken == "" {
 			return nil, diag.FromErr(fmt.Errorf("Lumen api refresh token cannot be empty"))
 		}*/
+	accountAlias := d.Get("account_alias").(string)
 
 	// Populating client config
 	config := Config{
@@ -110,6 +111,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		AuthUrl:         authUrl,
 		Username:        username,
 		Password:        password,
+		AccountAlias:    accountAlias,
 		ApiAccessToken:  apiAccessToken,
 		ApiRefreshToken: apiRefreshToken,
 	}

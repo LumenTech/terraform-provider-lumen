@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"reflect"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -123,11 +125,11 @@ func DataSourceNetworkInstanceNameRead(
 	m interface{}) diag.Diagnostics {
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	// To collect warnings and errors in a slice type
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	instanceName := d.Get("name").(string)
@@ -139,7 +141,7 @@ func DataSourceNetworkInstanceNameRead(
 			return diag.FromErr(err)
 		}
 	}
-	instanceDetails := resp.Result.(*GetInstanceResult)
+	instanceDetails := resp.Result.(*client.GetInstanceResult)
 
 	// populating schema based on response
 	PopulateSchemaNetworkInstanceNameResponse(instanceDetails.Instance, d)
@@ -148,7 +150,7 @@ func DataSourceNetworkInstanceNameRead(
 
 // flattening response
 func PopulateSchemaNetworkInstanceNameResponse(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		log.Printf("instance name: ", instanceDetails.Name)

@@ -5,6 +5,8 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -87,18 +89,18 @@ func DataSourceBareMetalAllInstancesRead(
 	m interface{}) diag.Diagnostics {
 
 	// Initializing client
-	c := m.(*Client)
+	c := m.(*Client).Morpheus
 
 	var diags diag.Diagnostics
 
 	// List instance call
-	resp, err := c.ListInstances(&Request{})
+	resp, err := c.ListInstances(&morpheus.Request{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	// List of instances
-	instances := resp.Result.(*ListInstancesResult)
+	instances := resp.Result.(*client.ListInstancesResult)
 
 	// Flattening response to fit schema
 	instanceItems := FlattenInstances(instances.Instances)
@@ -116,7 +118,7 @@ func DataSourceBareMetalAllInstancesRead(
 	return diags
 }
 
-func FlattenInstances(instanceList *[]Instance) []interface{} {
+func FlattenInstances(instanceList *[]client.Instance) []interface{} {
 	if instanceList != nil {
 		instances := make([]interface{}, len(*instanceList)) //, len(*instanceList))
 
