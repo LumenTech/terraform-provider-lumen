@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+var retryWaitTime = 1 * time.Second
+var retryMaxWaitTime = 30 * time.Second
+
 type BareMetalClient struct {
 	BaseURL            string
 	ApigeeAuthEndpoint string
@@ -25,6 +28,12 @@ func NewBareMetalClient(username, password, account string) *BareMetalClient {
 	client := resty.New()
 	client.SetHeader("User-Agent", "lumen-terraform-plugin v0.5.3")
 	client.SetHeader("x-billing-account-number", account)
+	client.SetRetryCount(5)
+	client.SetRetryWaitTime(retryWaitTime)
+	client.SetRetryMaxWaitTime(retryMaxWaitTime)
+	client.AddRetryCondition(func(response *resty.Response, err error) bool {
+		return err != nil || response.StatusCode() == 429 || response.StatusCode() >= 500
+	})
 	return &BareMetalClient{
 		BaseURL:            "https://api-dev1.lumen.com/EdgeServices/v2/Compute/bareMetal",
 		ApigeeAuthEndpoint: "https://api-dev1.lumen.com/oauth/token",
@@ -50,7 +59,6 @@ func (bm *BareMetalClient) GetLocations() (bare_metal.Locations, error) {
 }
 
 func (bm *BareMetalClient) execute(method, url string) (*resty.Response, error) {
-	// TODO: Should this handle some default retry policy
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
 	}
@@ -58,7 +66,6 @@ func (bm *BareMetalClient) execute(method, url string) (*resty.Response, error) 
 	request := bm.defaultClient.R().
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
 		SetHeader("Accept", "application/json")
-
 	return request.Execute(method, url)
 }
 

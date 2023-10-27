@@ -99,3 +99,23 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 	assert.NotEqual(t, client.ApigeeToken, apigeeToken)
 	assert.Equal(t, apigeeCallCount, 2)
 }
+
+func TestRefreshToken_RetryableClient(t *testing.T) {
+	apigeeCallCount := 0
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.RequestURI == "/oauth/token" {
+			apigeeCallCount++
+			w.WriteHeader(500)
+		}
+	}))
+
+	retryWaitTime = 1 * time.Second
+	retryMaxWaitTime = 1 * time.Second
+	client := NewBareMetalClient("test_user", "test_password", "test_account")
+	client.BaseURL = testServer.URL + "/Infrastructure/v1/BMC/"
+	client.ApigeeAuthEndpoint = testServer.URL + "/oauth/token"
+
+	err := client.refreshApigeeToken()
+	assert.NotNil(t, err)
+	assert.Equal(t, apigeeCallCount, 5)
+}
