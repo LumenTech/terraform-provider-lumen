@@ -31,14 +31,14 @@ type Price struct {
 
 func (c Configuration) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"name":         c.Name,
-		"cores":        c.Cores,
-		"memory":       c.Memory,
-		"storage":      c.Storage,
-		"disks":        c.Disks,
-		"nics":         c.Nics,
-		"processors":   c.Processors,
-		"machineCount": c.MachineCount,
-		"price":        fmt.Sprintf("$%f/%s", c.Price.Amount, c.Price.Period),
+		"name":          c.Name,
+		"cores":         c.Cores,
+		"memory":        c.Memory,
+		"storage":       c.Storage,
+		"disks":         c.Disks,
+		"nics":          c.Nics,
+		"processors":    c.Processors,
+		"machine_count": c.MachineCount,
+		"price":         fmt.Sprintf("$%-.2f/%s", c.Price.Amount, c.Price.Period),
 	}
 }

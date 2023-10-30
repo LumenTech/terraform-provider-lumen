@@ -68,7 +68,7 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 							Type:        schema.TypeInt,
 							Computed:    true,
 						},
-						"machineCount": {
+						"machine_count": {
 							Description: "The number of machines in this configuration",
 							Type:        schema.TypeInt,
 							Computed:    true,
