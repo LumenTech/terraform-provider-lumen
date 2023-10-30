@@ -10,7 +10,7 @@ func DataSourceBareMetalLocations() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provides the list of bare metal locations",
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			bmClient := i.(*Client).BareMetal
+			bmClient := i.(*Clients).BareMetal
 			locations, err := bmClient.GetLocations()
 			if err != nil {
 				return diag.FromErr(err)

@@ -125,8 +125,8 @@ func DataSourceNetworkInstanceNameRead(
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// To collect warnings and errors in a slice type
 	var diags diag.Diagnostics

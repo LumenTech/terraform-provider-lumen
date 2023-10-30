@@ -36,9 +36,7 @@ func TestRefreshToken_NotExpired(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewBareMetalClient("test_user", "test_password", "test_account")
-	client.BaseURL = testServer.URL + "/Infrastructure/v1/BMC/"
-	client.ApigeeAuthEndpoint = testServer.URL + "/oauth/token"
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
 	err := client.refreshApigeeToken()
 	assert.Nil(t, err)
@@ -81,9 +79,7 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 	}))
 	defer testServer.Close()
 
-	client := NewBareMetalClient("test_user", "test_password", "test_account")
-	client.BaseURL = testServer.URL + "/Infrastructure/v1/BMC/"
-	client.ApigeeAuthEndpoint = testServer.URL + "/oauth/token"
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
 	err := client.refreshApigeeToken()
 	assert.Nil(t, err)
@@ -111,9 +107,7 @@ func TestRefreshToken_RetryableClient(t *testing.T) {
 
 	retryWaitTime = 1 * time.Second
 	retryMaxWaitTime = 1 * time.Second
-	client := NewBareMetalClient("test_user", "test_password", "test_account")
-	client.BaseURL = testServer.URL + "/Infrastructure/v1/BMC/"
-	client.ApigeeAuthEndpoint = testServer.URL + "/oauth/token"
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
 	err := client.refreshApigeeToken()
 	assert.NotNil(t, err)

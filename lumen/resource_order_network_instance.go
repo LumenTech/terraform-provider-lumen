@@ -154,8 +154,8 @@ func ResourceNetworkInstanceCreate(
 	var diags diag.Diagnostics
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// Payload
 	payload := make(map[string]interface{})
@@ -290,8 +290,8 @@ func ResourceNetworkInstanceRead(
 	var resp *morpheus.Response
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	instanceId := d.Id()
 	instanceName := d.Get("name").(string)
@@ -344,8 +344,8 @@ func ResourceNetworkInstanceDelete(
 	var resp *morpheus.Response
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	instanceId := d.Id()
 	instanceDelRequest := &morpheus.Request{

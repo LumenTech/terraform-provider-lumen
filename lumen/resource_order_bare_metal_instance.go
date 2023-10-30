@@ -262,8 +262,8 @@ func ResourceBareMetalInstanceCreate(
 	var diags diag.Diagnostics
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// payload
 	payload := make(map[string]interface{})
@@ -418,8 +418,8 @@ func ResourceBareMetalInstanceRead(
 	var resp *morpheus.Response
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	instanceid := d.Id()
 	instancename := d.Get("name").(string)
@@ -490,8 +490,8 @@ func ResourceBareMetalInstanceDelete(
 	var resp *morpheus.Response
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	instanceid := d.Id()
 	instanceDelRequest := &morpheus.Request{
@@ -524,8 +524,8 @@ func ResourceBareMetalInstanceUpdate(
 	var diags diag.Diagnostics
 	var err error
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	id := d.Id()
 

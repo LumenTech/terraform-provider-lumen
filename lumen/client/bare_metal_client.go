@@ -14,7 +14,7 @@ var retryWaitTime = 1 * time.Second
 var retryMaxWaitTime = 30 * time.Second
 
 type BareMetalClient struct {
-	BaseURL            string
+	URL                string
 	ApigeeAuthEndpoint string
 	ApigeeUsername     string
 	ApigeePassword     string
@@ -24,7 +24,7 @@ type BareMetalClient struct {
 	defaultClient      *resty.Client
 }
 
-func NewBareMetalClient(username, password, account string) *BareMetalClient {
+func NewBareMetalClient(apigeeBaseURL, username, password, account string) *BareMetalClient {
 	client := resty.New()
 	client.SetHeader("User-Agent", "lumen-terraform-plugin v0.5.3")
 	client.SetHeader("x-billing-account-number", account)
@@ -35,8 +35,8 @@ func NewBareMetalClient(username, password, account string) *BareMetalClient {
 		return err != nil || response.StatusCode() == 429 || response.StatusCode() >= 500
 	})
 	return &BareMetalClient{
-		BaseURL:            "https://api-dev1.lumen.com/EdgeServices/v2/Compute/bareMetal",
-		ApigeeAuthEndpoint: "https://api-dev1.lumen.com/oauth/token",
+		URL:                fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
+		ApigeeAuthEndpoint: fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
 		ApigeeUsername:     username,
 		ApigeePassword:     password,
 		AccountAlias:       account,
@@ -45,7 +45,7 @@ func NewBareMetalClient(username, password, account string) *BareMetalClient {
 }
 
 func (bm *BareMetalClient) GetLocations() (bare_metal.Locations, error) {
-	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations", bm.BaseURL))
+	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations", bm.URL))
 	if err != nil || !resp.IsSuccess() {
 		return nil, errors.New("bare metal api failure")
 	}

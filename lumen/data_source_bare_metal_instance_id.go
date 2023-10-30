@@ -196,8 +196,8 @@ func DataSourceBareMetalInstanceIdRead(
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
 
-	// Initializing client
-	c := m.(*Client).Morpheus
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// Warnings or error to be collected in a slice type
 	var diags diag.Diagnostics
