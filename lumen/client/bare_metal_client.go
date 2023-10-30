@@ -44,6 +44,20 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 	}
 }
 
+func (bm *BareMetalClient) GetConfigurations(locationId string) (bare_metal.Configurations, error) {
+	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId))
+	if err != nil || !resp.IsSuccess() {
+		return nil, errors.New("bare metal api failure")
+	}
+
+	var configurations bare_metal.Configurations
+	if jsonErr := json.Unmarshal(resp.Body(), &configurations); jsonErr != nil {
+		return nil, errors.New("unable to parse configuration response")
+	}
+
+	return configurations, nil
+}
+
 func (bm *BareMetalClient) GetLocations() (bare_metal.Locations, error) {
 	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations", bm.URL))
 	if err != nil || !resp.IsSuccess() {
