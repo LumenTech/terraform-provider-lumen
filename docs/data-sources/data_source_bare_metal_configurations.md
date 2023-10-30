@@ -31,7 +31,7 @@ output "configurations" {
 - disks (Integer) "The number of disks in this configuration"
 - nics (Integer) "The number of NICs in this configuration"
 - processors (Integer) "The number of processors in this configuration"
-- machineCount (Integer) "The number of machines in this configuration"
+- machine_count (Integer) "The number of machines in this configuration"
 - price (String) "The price for this configuration"
 
 ## Terraform Input Variables
