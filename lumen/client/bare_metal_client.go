@@ -20,14 +20,14 @@ type BareMetalClient struct {
 	ApigeePassword     string
 	ApigeeToken        string
 	ExpireTime         int64
-	AccountAlias       string
+	AccountNumber      string
 	defaultClient      *resty.Client
 }
 
-func NewBareMetalClient(apigeeBaseURL, username, password, account string) *BareMetalClient {
+func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string) *BareMetalClient {
 	client := resty.New()
 	client.SetHeader("User-Agent", "lumen-terraform-plugin v0.5.3")
-	client.SetHeader("x-billing-account-number", account)
+	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(5)
 	client.SetRetryWaitTime(retryWaitTime)
 	client.SetRetryMaxWaitTime(retryMaxWaitTime)
@@ -39,7 +39,7 @@ func NewBareMetalClient(apigeeBaseURL, username, password, account string) *Bare
 		ApigeeAuthEndpoint: fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
 		ApigeeUsername:     username,
 		ApigeePassword:     password,
-		AccountAlias:       account,
+		AccountNumber:      accountNumber,
 		defaultClient:      client,
 	}
 }

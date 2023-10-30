@@ -16,7 +16,7 @@ type Config struct {
 	AuthUrl                 string
 	Username                string
 	Password                string
-	AccountAlias            string
+	AccountNumber           string
 	ApiAccessToken          string
 	ApiRefreshToken         string
 
@@ -31,7 +31,7 @@ func (c *Config) LumenClients() (*Clients, diag.Diagnostics) {
 
 		c.clients = &Clients{
 			Morpheus:  mClient,
-			BareMetal: client.NewBareMetalClient(c.ApigeeBaseURL, c.Username, c.Password, c.AccountAlias),
+			BareMetal: client.NewBareMetalClient(c.ApigeeBaseURL, c.Username, c.Password, c.AccountNumber),
 		}
 	}
 	return c.clients, nil

@@ -44,12 +44,12 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_REFRESH_TOKEN", nil),
 				Deprecated:  CustomerDeprecationNotice,
 			},
-			"account_alias": {
+			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				Description: "Lumen customer account alias",
-				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_ALIAS", nil),
+				Description: "Lumen customer account number",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_NUMBER", nil),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -116,7 +116,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		if apiRefreshToken == "" {
 			return nil, diag.FromErr(fmt.Errorf("Lumen api refresh token cannot be empty"))
 		}*/
-	accountAlias := d.Get("account_alias").(string)
+	accountNumber := d.Get("account_number").(string)
 
 	// Populating clients config
 	config := Config{
@@ -125,7 +125,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		AuthUrl:                 authUrl,
 		Username:                username,
 		Password:                password,
-		AccountAlias:            accountAlias,
+		AccountNumber:           accountNumber,
 		ApiAccessToken:          apiAccessToken,
 		ApiRefreshToken:         apiRefreshToken,
 	}
