@@ -3,7 +3,6 @@ package lumen
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -45,6 +44,13 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_API_REFRESH_TOKEN", nil),
 				Deprecated:  CustomerDeprecationNotice,
 			},
+			"account_number": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Lumen customer account number",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_NUMBER", nil),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			/*
@@ -61,7 +67,9 @@ func Provider() *schema.Provider {
 			"lumen_network_instance":    ResourceNetworkInstance(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"lumen_bare_metal_locations": DataSourceBareMetalLocations(),
 			/*
+				Deprecated Resources
 				DataSourceBareMetalAllInstances : lists all instances currently with tenant.
 				DataSourceBareMetalInstanceId : lists details for a particular instance based on instance id.
 				DataSourceBareMetalInstanceName : lists details for a particular instance based on instance name.
@@ -82,10 +90,11 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	apigeeBaseURL := "https://api.lumen.com"
 	// Lumen API url
-	apiUrl := "https://api.lumen.com/EdgeServices/v1/Compute/"
+	morpheusBareMetalApiUrl := fmt.Sprintf("%s/EdgeServices/v1/Compute/", apigeeBaseURL)
 	// Lumen Auth url
-	authUrl := "https://api.lumen.com/oauth/v1/token"
+	authUrl := fmt.Sprintf("%s/oauth/v1/token", apigeeBaseURL)
 	// Lumen username
 	username := d.Get("username").(string)
 	if username == "" {
@@ -107,15 +116,18 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		if apiRefreshToken == "" {
 			return nil, diag.FromErr(fmt.Errorf("Lumen api refresh token cannot be empty"))
 		}*/
+	accountNumber := d.Get("account_number").(string)
 
-	// Populating client config
+	// Populating clients config
 	config := Config{
-		ApiUrl:          apiUrl,
-		AuthUrl:         authUrl,
-		Username:        username,
-		Password:        password,
-		ApiAccessToken:  apiAccessToken,
-		ApiRefreshToken: apiRefreshToken,
+		ApigeeBaseURL:           apigeeBaseURL,
+		MorpheusBareMetalApiUrl: morpheusBareMetalApiUrl,
+		AuthUrl:                 authUrl,
+		Username:                username,
+		Password:                password,
+		AccountNumber:           accountNumber,
+		ApiAccessToken:          apiAccessToken,
+		ApiRefreshToken:         apiRefreshToken,
 	}
-	return config.LumenClient()
+	return config.LumenClients()
 }

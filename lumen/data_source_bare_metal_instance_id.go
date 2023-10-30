@@ -3,6 +3,8 @@ package lumen
 import (
 	"context"
 	"strconv"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -194,16 +196,16 @@ func DataSourceBareMetalInstanceIdRead(
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
 
-	// Initializing client
-	c := m.(*Client)
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// Warnings or error to be collected in a slice type
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	instanceid := strconv.Itoa(d.Get("id").(int))
-	resp, err = c.GetInstance(toInt64(instanceid), &Request{})
+	resp, err = c.GetInstance(toInt64(instanceid), &morpheus.Request{})
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
@@ -214,7 +216,7 @@ func DataSourceBareMetalInstanceIdRead(
 	}
 
 	// storing get instance response data
-	instancedetails := resp.Result.(*GetInstanceResult)
+	instancedetails := resp.Result.(*client.GetInstanceResult)
 
 	// populating schema with instance response
 	PopulateSchemaInstanceIdResponse(instancedetails.Instance, d)
@@ -225,7 +227,7 @@ func DataSourceBareMetalInstanceIdRead(
 
 // helper function to populate response schema
 func PopulateSchemaInstanceIdResponse(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)

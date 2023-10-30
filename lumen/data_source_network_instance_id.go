@@ -4,6 +4,8 @@ import (
 	"context"
 	"reflect"
 	"strconv"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -123,16 +125,16 @@ func DataSourceNetworkInstanceIdRead(
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
 
-	// Initializing client
-	c := m.(*Client)
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	// Capture warings and errors
 	var diags diag.Diagnostics
-	var resp *Response
+	var resp *morpheus.Response
 	var err error
 
 	instanceId := strconv.Itoa(d.Get("id").(int))
-	resp, err = c.GetInstance(toInt64(instanceId), &Request{})
+	resp, err = c.GetInstance(toInt64(instanceId), &morpheus.Request{})
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
@@ -143,7 +145,7 @@ func DataSourceNetworkInstanceIdRead(
 	}
 
 	// storing get instance response data
-	instanceDetails := resp.Result.(*GetInstanceResult)
+	instanceDetails := resp.Result.(*client.GetInstanceResult)
 
 	// populating schema with instance response
 	PopulateSchemaNetworkInstanceIdResponse(instanceDetails.Instance, d)
@@ -154,7 +156,7 @@ func DataSourceNetworkInstanceIdRead(
 
 // helper function to populate response schema
 func PopulateSchemaNetworkInstanceIdResponse(
-	instanceDetails *Instance,
+	instanceDetails *client.Instance,
 	d *schema.ResourceData) {
 	if instanceDetails != nil {
 		d.Set("name", instanceDetails.Name)

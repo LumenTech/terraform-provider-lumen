@@ -5,6 +5,8 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/morpheus"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -128,18 +130,18 @@ func DataSourceNetworkAllInstancesRead(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{}) diag.Diagnostics {
-	// Initializing client
-	c := m.(*Client)
+	// Initializing clients
+	c := m.(*Clients).Morpheus
 
 	var diags diag.Diagnostics
 	// List network instance call
-	resp, err := c.ListInstances(&Request{})
+	resp, err := c.ListInstances(&morpheus.Request{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	// List network instances
-	instances := resp.Result.(*ListInstancesResult)
+	instances := resp.Result.(*client.ListInstancesResult)
 
 	// Debug
 	log.Printf("Instance results: %s", instances)
@@ -160,7 +162,7 @@ func DataSourceNetworkAllInstancesRead(
 }
 
 // Helper function to flatten network instances
-func FlattenNetworkInstances(instanceList *[]Instance) []interface{} {
+func FlattenNetworkInstances(instanceList *[]client.Instance) []interface{} {
 	if instanceList != nil {
 		instances := make([]interface{}, len(*instanceList)) //, len(*instanceList))
 		for i, instanceItem := range *instanceList {
