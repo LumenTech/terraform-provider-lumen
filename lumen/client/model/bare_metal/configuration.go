@@ -1,7 +1,5 @@
 package bare_metal
 
-import "fmt"
-
 type Configurations []Configuration
 
 func (configs Configurations) ToMapList() []map[string]interface{} {
@@ -24,11 +22,6 @@ type Configuration struct {
 	Price        Price  `json:"price"`
 }
 
-type Price struct {
-	Amount float32 `json:"amount"`
-	Period string  `json:"period"`
-}
-
 func (c Configuration) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"name":          c.Name,
@@ -39,6 +32,6 @@ func (c Configuration) ToMap() map[string]interface{} {
 		"nics":          c.Nics,
 		"processors":    c.Processors,
 		"machine_count": c.MachineCount,
-		"price":         fmt.Sprintf("$%-.2f/%s", c.Price.Amount, c.Price.Period),
+		"price":         c.Price.String(),
 	}
 }
