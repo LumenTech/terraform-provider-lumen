@@ -40,7 +40,7 @@ func DataSourceBareMetalNetworkSizes() *schema.Resource {
 						},
 						"name": {
 							Description: "The name of this network size",
-							Type:        schema.TypeInt,
+							Type:        schema.TypeString,
 							Computed:    true,
 						},
 						"cidr": {
