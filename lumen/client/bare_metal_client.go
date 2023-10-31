@@ -44,35 +44,37 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 	}
 }
 
-func (bm *BareMetalClient) GetConfigurations(locationId string) (bare_metal.Configurations, error) {
-	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId))
-	if err != nil || !resp.IsSuccess() {
-		return nil, errors.New("bare metal api failure")
+func (bm *BareMetalClient) GetLocations() (*bare_metal.Locations, error) {
+	url := fmt.Sprintf("%s/locations", bm.URL)
+	resp, err := bm.execute("GET", url, bare_metal.Locations{})
+	if err != nil {
+		return nil, err
 	}
 
-	var configurations bare_metal.Configurations
-	if jsonErr := json.Unmarshal(resp.Body(), &configurations); jsonErr != nil {
-		return nil, errors.New("unable to parse configuration response")
-	}
-
-	return configurations, nil
+	return resp.Result().(*bare_metal.Locations), nil
 }
 
-func (bm *BareMetalClient) GetLocations() (bare_metal.Locations, error) {
-	resp, err := bm.execute("GET", fmt.Sprintf("%s/locations", bm.URL))
-	if err != nil || !resp.IsSuccess() {
-		return nil, errors.New("bare metal api failure")
+func (bm *BareMetalClient) GetConfigurations(locationId string) (*bare_metal.Configurations, error) {
+	url := fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId)
+	resp, err := bm.execute("GET", url, bare_metal.Configurations{})
+	if err != nil {
+		return nil, err
 	}
 
-	var locations bare_metal.Locations
-	if jsonErr := json.Unmarshal(resp.Body(), &locations); jsonErr != nil {
-		return nil, errors.New("unable to parse location response")
-	}
-
-	return locations, nil
+	return resp.Result().(*bare_metal.Configurations), nil
 }
 
-func (bm *BareMetalClient) execute(method, url string) (*resty.Response, error) {
+func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*bare_metal.NetworkSizes, error) {
+	url := fmt.Sprintf("%s/locations/%s/networkSizes", bm.URL, locationId)
+	resp, err := bm.execute("GET", url, bare_metal.NetworkSizes{})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*bare_metal.NetworkSizes), nil
+}
+
+func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
 	}
@@ -80,7 +82,24 @@ func (bm *BareMetalClient) execute(method, url string) (*resty.Response, error) 
 	request := bm.defaultClient.R().
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
 		SetHeader("Accept", "application/json")
-	return request.Execute(method, url)
+
+	if result != nil {
+		request.SetResult(result)
+	}
+
+	resp, err := request.Execute(method, url)
+	if err != nil || !resp.IsSuccess() {
+		var reason string
+		if err != nil {
+			reason = err.Error()
+		} else {
+			reason = resp.Status()
+		}
+
+		return nil, fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
+	}
+
+	return resp, err
 }
 
 func (bm *BareMetalClient) refreshApigeeToken() error {
