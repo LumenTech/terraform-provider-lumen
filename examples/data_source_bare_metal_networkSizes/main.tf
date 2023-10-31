@@ -13,11 +13,11 @@ provider "lumen" {
   account_number = var.accountNumber
 }
 
-data "lumen_bare_metal_network_sizes" "networkSizes" {
+data "lumen_bare_metal_network_sizes" "network_sizes" {
   location_id = var.location_id
 }
 
-output "networkSizes" {
-  value = data.lumen_bare_metal_network_sizes.networkSizes
+output "network_sizes" {
+  value = data.lumen_bare_metal_network_sizes.network_sizes
   description = "Lumen bare metal network sizes"
 }
