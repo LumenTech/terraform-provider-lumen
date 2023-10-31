@@ -69,7 +69,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"lumen_bare_metal_configurations": DataSourceBareMetalConfigurations(),
 			"lumen_bare_metal_locations":      DataSourceBareMetalLocations(),
-			"lumen_bare_metal_networkSizes":   DataSourceBareMetalNetworkSizes(),
+			"lumen_bare_metal_network_sizes":  DataSourceBareMetalNetworkSizes(),
 			/*
 				Deprecated Resources
 				DataSourceBareMetalAllInstances : lists all instances currently with tenant.
