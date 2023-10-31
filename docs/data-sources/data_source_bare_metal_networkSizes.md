@@ -8,12 +8,12 @@ This document provides usage details on a data source that can be used to access
 ## Example Usage
 `main.tf`
 ```hcl
-data "lumen_bare_metal_networkSizes" "networkSizes" {
+data "lumen_bare_metal_network_sizes" "network_sizes" {
   location_id = var.location_id
 }
 
-output "networkSizes" {
-  value = data.lumen_bare_metal_networkSizes.networkSizes
+output "network_sizes" {
+  value = data.lumen_bare_metal_network_sizes.network_sizes
   description = "Lumen bare metal network sizes"
 }
 ```

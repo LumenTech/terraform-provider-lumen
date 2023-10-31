@@ -16,10 +16,10 @@ func DataSourceBareMetalNetworkSizes() *schema.Resource {
 				return diag.FromErr(err)
 			}
 
-			if err := data.Set("networkSizes", networkSizes.ToMapList()); err != nil {
+			if err := data.Set("network_sizes", networkSizes.ToMapList()); err != nil {
 				return diag.FromErr(err)
 			}
-			data.SetId("networkSizes")
+			data.SetId("network_sizes")
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
@@ -28,7 +28,7 @@ func DataSourceBareMetalNetworkSizes() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"networkSizes": {
+			"network_sizes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
