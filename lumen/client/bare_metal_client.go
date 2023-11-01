@@ -75,6 +75,16 @@ func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.Net
 	return resp.Result().(*[]bare_metal.NetworkSize), nil
 }
 
+func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage, error) {
+	url := fmt.Sprintf("%s/locations/%s/osImages", bm.URL, locationId)
+	resp, err := bm.execute("GET", url, []bare_metal.OsImage{})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*[]bare_metal.OsImage), nil
+}
+
 func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
