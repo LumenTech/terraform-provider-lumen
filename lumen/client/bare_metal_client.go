@@ -82,7 +82,8 @@ func (bm *BareMetalClient) execute(method, url string, result interface{}) (*res
 
 	request := bm.defaultClient.R().
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
-		SetHeader("Accept", "application/json")
+		SetHeader("Accept", "application/json").
+		SetHeader("Content-Type", "application/json")
 
 	if result != nil {
 		request.SetResult(result)

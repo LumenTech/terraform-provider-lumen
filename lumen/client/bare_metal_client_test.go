@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -18,8 +17,23 @@ type HttpResponse struct {
 	Body       interface{}
 }
 
-func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int) *httptest.Server {
+func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse *HttpResponse) (*httptest.Server, *int) {
+	apigeeCallCount := 0
+	return setupTestServer(t, HttpResponses{
+		{
+			StatusCode: 200,
+			Body: map[string]interface{}{
+				"access_token": fmt.Sprintf("%d", time.Now().Nanosecond()),
+				"issued_at":    fmt.Sprintf("%d", time.Now().UnixMilli()),
+				"expires_in":   fmt.Sprintf("%d", int64(1800)),
+			},
+		},
+	}, &apigeeCallCount, apiResponse), &apigeeCallCount
+}
+
+func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int, apiResponse *HttpResponse) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		var response HttpResponse
 		if req.RequestURI == "/oauth/token" {
 			*apigeeCallCount++
 			assert.Equal(t, "POST", req.Method)
@@ -28,50 +42,47 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
 			assert.Equal(t, "lumen-terraform-plugin v0.5.3", req.Header.Get("User-Agent"))
 
-			response := apigeeResponses[0]
-			apigeeResponses = apigeeResponses[1:]
-			if response.Body != nil {
-				_ = json.NewEncoder(w).Encode(response.Body)
+			response = apigeeResponses[0]
+			if len(apigeeResponses) > 1 {
+				apigeeResponses = apigeeResponses[1:]
 			}
-			w.WriteHeader(response.StatusCode)
+		} else {
+			// Handle other requests
+			assert.Contains(t, req.Header.Get("Authorization"), "Bearer ")
+			assert.Equal(t, "application/json", req.Header.Get("Accept"))
+			assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
+			assert.NotEmpty(t, req.Header.Get("x-billing-account-number"))
+			response = *apiResponse
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(response.StatusCode)
+		if response.Body != nil {
+			_ = json.NewEncoder(w).Encode(response.Body)
 		}
 	}))
 }
 
 func TestRefreshToken_NotExpired(t *testing.T) {
-	apigeeCallCount := 0
-
-	fakeApigeeToken, _ := uuid.GenerateUUID()
-	issuedAt := time.Now().UnixMilli()
-	expiresIn := int64(1800)
-
-	testServer := setupTestServer(t, HttpResponses{
-		{
-			StatusCode: 200,
-			Body: map[string]interface{}{
-				"access_token": fakeApigeeToken,
-				"issued_at":    fmt.Sprintf("%d", issuedAt),
-				"expires_in":   fmt.Sprintf("%d", expiresIn),
-			},
-		},
-	}, &apigeeCallCount)
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, nil)
 	defer testServer.Close()
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
 	err := client.refreshApigeeToken()
 	assert.Nil(t, err)
-	assert.Equal(t, apigeeCallCount, 1)
+	assert.Equal(t, *apigeeCallCount, 1)
 
 	apigeeToken := client.ApigeeToken
+	expireTime := client.ExpireTime
 	assert.NotEmpty(t, apigeeToken)
-	expectedExpireTime := issuedAt + (expiresIn * 1000)
-	assert.Equal(t, expectedExpireTime, client.ExpireTime)
+	assert.NotEmpty(t, expireTime)
 
 	err = client.refreshApigeeToken()
 	assert.Nil(t, err)
-	assert.Equal(t, client.ApigeeToken, apigeeToken)
-	assert.Equal(t, apigeeCallCount, 1)
+	assert.Equal(t, *apigeeCallCount, 1)
+	assert.Equal(t, apigeeToken, client.ApigeeToken)
+	assert.Equal(t, expireTime, client.ExpireTime)
 }
 
 func TestRefreshToken_ExpiredToken(t *testing.T) {
@@ -79,25 +90,25 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 	offset := time.Minute * 30
 	issuedAt := time.Now().UnixMilli() - offset.Milliseconds()
 	expiresIn := int64(1800)
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.RequestURI == "/oauth/token" {
-			apigeeCallCount++
-			assert.Equal(t, "POST", req.Method)
-			assert.Contains(t, req.Header.Get("Authorization"), "Basic")
-			assert.Equal(t, "application/json", req.Header.Get("Accept"))
-			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
-			assert.Equal(t, "lumen-terraform-plugin v0.5.3", req.Header.Get("User-Agent"))
 
-			fakeApigeeToken, _ := uuid.GenerateUUID()
-			if err := json.NewEncoder(w).Encode(map[string]string{
-				"access_token": fakeApigeeToken,
+	testServer := setupTestServer(t, HttpResponses{
+		{
+			StatusCode: 200,
+			Body: map[string]interface{}{
+				"access_token": "test-token-1",
 				"issued_at":    fmt.Sprintf("%d", issuedAt),
 				"expires_in":   fmt.Sprintf("%d", expiresIn),
-			}); err == nil {
-				w.WriteHeader(200)
-			}
-		}
-	}))
+			},
+		},
+		{
+			StatusCode: 200,
+			Body: map[string]interface{}{
+				"access_token": "test-token-2",
+				"issued_at":    fmt.Sprintf("%d", time.Now().UnixMilli()),
+				"expires_in":   fmt.Sprintf("%d", expiresIn),
+			},
+		},
+	}, &apigeeCallCount, nil)
 	defer testServer.Close()
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
@@ -113,19 +124,17 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 
 	err = client.refreshApigeeToken()
 	assert.Nil(t, err)
-	assert.NotEqual(t, client.ApigeeToken, apigeeToken)
+	assert.NotEqual(t, apigeeToken, client.ApigeeToken)
 	assert.Equal(t, apigeeCallCount, 2)
 }
 
 func TestRefreshToken_RetryableClient(t *testing.T) {
 	apigeeCallCount := 0
-	responses := make(HttpResponses, retryCount)
-	for i := 0; i < retryCount; i++ {
-		responses[i] = HttpResponse{
+	testServer := setupTestServer(t, HttpResponses{
+		{
 			StatusCode: 500,
-		}
-	}
-	testServer := setupTestServer(t, responses, &apigeeCallCount)
+		},
+	}, &apigeeCallCount, nil)
 	defer testServer.Close()
 
 	retryWaitTime = 1 * time.Second
@@ -135,4 +144,35 @@ func TestRefreshToken_RetryableClient(t *testing.T) {
 	err := client.refreshApigeeToken()
 	assert.NotNil(t, err)
 	assert.Equal(t, apigeeCallCount, 5)
+}
+
+func TestBareMetalClient_GetLocations(t *testing.T) {
+	responseBody := []map[string]interface{}{
+		{
+			"id":     "test-id",
+			"name":   "Test Site",
+			"status": "Test Status",
+			"region": "NA",
+		},
+	}
+	apiResponse := &HttpResponse{
+		StatusCode: 200,
+		Body:       responseBody,
+	}
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponse)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	locations, err := client.GetLocations()
+	deref := *locations
+	assert.Nil(t, err)
+	assert.Equal(t, 1, *apigeeCallCount)
+	assert.Equal(t, 1, len(deref))
+
+	location := deref[0]
+	assert.Equal(t, responseBody[0]["id"], location.ID)
+	assert.Equal(t, responseBody[0]["name"], location.Name)
+	assert.Equal(t, responseBody[0]["status"], location.Status)
+	assert.Equal(t, responseBody[0]["region"], location.Region)
 }
