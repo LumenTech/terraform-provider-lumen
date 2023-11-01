@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+var retryCount = 5
 var retryWaitTime = 1 * time.Second
 var retryMaxWaitTime = 30 * time.Second
 
@@ -28,7 +29,7 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 	client := resty.New()
 	client.SetHeader("User-Agent", "lumen-terraform-plugin v0.5.3")
 	client.SetHeader("x-billing-account-number", accountNumber)
-	client.SetRetryCount(5)
+	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
 	client.SetRetryMaxWaitTime(retryMaxWaitTime)
 	client.AddRetryCondition(func(response *resty.Response, err error) bool {
