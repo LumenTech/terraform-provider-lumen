@@ -44,34 +44,34 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 	}
 }
 
-func (bm *BareMetalClient) GetLocations() (*bare_metal.Locations, error) {
+func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
 	url := fmt.Sprintf("%s/locations", bm.URL)
-	resp, err := bm.execute("GET", url, bare_metal.Locations{})
+	resp, err := bm.execute("GET", url, []bare_metal.Location{})
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Result().(*bare_metal.Locations), nil
+	return resp.Result().(*[]bare_metal.Location), nil
 }
 
-func (bm *BareMetalClient) GetConfigurations(locationId string) (*bare_metal.Configurations, error) {
+func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.Configuration, error) {
 	url := fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, bare_metal.Configurations{})
+	resp, err := bm.execute("GET", url, []bare_metal.Configuration{})
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Result().(*bare_metal.Configurations), nil
+	return resp.Result().(*[]bare_metal.Configuration), nil
 }
 
-func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*bare_metal.NetworkSizes, error) {
+func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.NetworkSize, error) {
 	url := fmt.Sprintf("%s/locations/%s/networkSizes", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, bare_metal.NetworkSizes{})
+	resp, err := bm.execute("GET", url, []bare_metal.NetworkSize{})
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.Result().(*bare_metal.NetworkSizes), nil
+	return resp.Result().(*[]bare_metal.NetworkSize), nil
 }
 
 func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
