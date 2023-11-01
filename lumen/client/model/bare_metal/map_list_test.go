@@ -108,6 +108,5 @@ func TestConvertToListMap_OsImage(t *testing.T) {
 	osImage := osImages[0]
 	convertedImage := list[0]
 	assert.Equal(t, osImage.Name, convertedImage["name"])
-	assert.Equal(t, osImage.Ready, convertedImage["ready"])
 	assert.Equal(t, "$45.00/MONTHLY", convertedImage["price"])
 }

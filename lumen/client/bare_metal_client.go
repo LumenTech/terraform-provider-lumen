@@ -81,8 +81,14 @@ func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage
 	if err != nil {
 		return nil, err
 	}
-
-	return resp.Result().(*[]bare_metal.OsImage), nil
+	osImages := *resp.Result().(*[]bare_metal.OsImage)
+	retVal := make([]bare_metal.OsImage, 0)
+	for _, osImage := range osImages {
+		if osImage.Ready {
+			retVal = append(retVal, osImage)
+		}
+	}
+	return &retVal, nil
 }
 
 func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
