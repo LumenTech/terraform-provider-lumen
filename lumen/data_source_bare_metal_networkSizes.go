@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
 )
 
 func DataSourceBareMetalNetworkSizes() *schema.Resource {
@@ -16,7 +17,7 @@ func DataSourceBareMetalNetworkSizes() *schema.Resource {
 				return diag.FromErr(err)
 			}
 
-			if err := data.Set("network_sizes", networkSizes.ToMapList()); err != nil {
+			if err := data.Set("network_sizes", bare_metal.ConvertToListMap(*networkSizes)); err != nil {
 				return diag.FromErr(err)
 			}
 			data.SetId("network_sizes")

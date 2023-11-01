@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
 )
 
 func DataSourceBareMetalConfigurations() *schema.Resource {
@@ -16,7 +17,7 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 				return diag.FromErr(err)
 			}
 
-			if err := data.Set("configurations", configurations.ToMapList()); err != nil {
+			if err := data.Set("configurations", bare_metal.ConvertToListMap(*configurations)); err != nil {
 				return diag.FromErr(err)
 			}
 			data.SetId("configurations")

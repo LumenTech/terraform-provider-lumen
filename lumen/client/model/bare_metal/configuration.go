@@ -1,15 +1,5 @@
 package bare_metal
 
-type Configurations []Configuration
-
-func (configs Configurations) ToMapList() []map[string]interface{} {
-	mapList := make([]map[string]interface{}, len(configs))
-	for idx, loc := range configs {
-		mapList[idx] = loc.ToMap()
-	}
-	return mapList
-}
-
 type Configuration struct {
 	Name         string `json:"name"`
 	Cores        int    `json:"cores"`

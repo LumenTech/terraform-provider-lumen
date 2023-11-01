@@ -1,15 +1,5 @@
 package bare_metal
 
-type NetworkSizes []NetworkSize
-
-func (n NetworkSizes) ToMapList() []map[string]interface{} {
-	mapList := make([]map[string]interface{}, len(n))
-	for idx, loc := range n {
-		mapList[idx] = loc.ToMap()
-	}
-	return mapList
-}
-
 type NetworkSize struct {
 	ID           string `json:"id"`
 	Name         string `json:"name"`
