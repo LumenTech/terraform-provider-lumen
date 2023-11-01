@@ -70,6 +70,7 @@ func Provider() *schema.Provider {
 			"lumen_bare_metal_configurations": DataSourceBareMetalConfigurations(),
 			"lumen_bare_metal_locations":      DataSourceBareMetalLocations(),
 			"lumen_bare_metal_network_sizes":  DataSourceBareMetalNetworkSizes(),
+			"lumen_bare_metal_os_images":      DataSourceBareMetalOsImages(),
 			/*
 				Deprecated Resources
 				DataSourceBareMetalAllInstances : lists all instances currently with tenant.

@@ -176,3 +176,43 @@ func TestBareMetalClient_GetLocations(t *testing.T) {
 	assert.Equal(t, responseBody[0]["status"], location.Status)
 	assert.Equal(t, responseBody[0]["region"], location.Region)
 }
+
+func TestBareMetalClient_GetOsImages(t *testing.T) {
+	responseBody := []map[string]interface{}{
+		{
+			"name":  "Ubuntu 20.04",
+			"ready": true,
+			"price": map[string]interface{}{
+				"amount": 45.00,
+				"period": "MONTHLY",
+			},
+		},
+		{
+			"name":  "Ubuntu 21.04",
+			"ready": false,
+			"price": map[string]interface{}{
+				"amount": 50.00,
+				"period": "MONTHLY",
+			},
+		},
+	}
+	apiResponse := &HttpResponse{
+		StatusCode: 200,
+		Body:       responseBody,
+	}
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponse)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	osImages, err := client.GetOsImages("testLocation")
+	deref := *osImages
+	assert.Nil(t, err)
+	assert.Equal(t, 1, *apigeeCallCount)
+	assert.Equal(t, 1, len(deref))
+
+	osImage := deref[0]
+	assert.Equal(t, responseBody[0]["name"], osImage.Name)
+	assert.Equal(t, responseBody[0]["ready"], osImage.Ready)
+	assert.Equal(t, "$45.00/MONTHLY", osImage.Price.String())
+}
