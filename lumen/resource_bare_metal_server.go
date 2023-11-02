@@ -29,8 +29,7 @@ func ResourceBareMetalServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
-					validationError := validation.ValidateBareMetalServerName(i.(string))
-					if validationError != nil {
+					if validationError := validation.ValidateBareMetalServerName(i.(string)); validationError != nil {
 						return diag.FromErr(validationError)
 					}
 					return nil
