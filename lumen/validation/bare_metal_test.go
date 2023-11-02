@@ -39,3 +39,35 @@ func TestValidateBareMetalServerName_InvalidInputs(t *testing.T) {
 		assert.NotNil(t, err)
 	}
 }
+
+func TestValidationBareMetalUsername_ValidInputs(t *testing.T) {
+	validInputs := []string{
+		"username",
+		"user-name",
+		"user_name",
+		"User-_name",
+		"NotRoot",
+	}
+
+	for _, input := range validInputs {
+		err := ValidateBareMetalUsername(input)
+		assert.Nil(t, err)
+	}
+}
+
+func TestValidateBareMetalUsername_InvalidInputs(t *testing.T) {
+	invalidInputs := []string{
+		"",
+		"root",
+		"ROOT",
+		"RooT",
+		"user*name",
+		"#username",
+		"@username",
+	}
+
+	for _, input := range invalidInputs {
+		err := ValidateBareMetalUsername(input)
+		assert.NotNil(t, err)
+	}
+}
