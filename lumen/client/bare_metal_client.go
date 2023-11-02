@@ -47,7 +47,7 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 
 func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
 	url := fmt.Sprintf("%s/locations", bm.URL)
-	resp, err := bm.execute("GET", url, []bare_metal.Location{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Location{})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
 
 func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.Configuration, error) {
 	url := fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.Configuration{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Configuration{})
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.C
 
 func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.NetworkSize, error) {
 	url := fmt.Sprintf("%s/locations/%s/networkSizes", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.NetworkSize{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.NetworkSize{})
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.Net
 
 func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage, error) {
 	url := fmt.Sprintf("%s/locations/%s/osImages", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.OsImage{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.OsImage{})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,16 @@ func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage
 	return &retVal, nil
 }
 
-func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
+func (bm *BareMetalClient) ProvisionServer(provisionRequest map[string]interface{}) (*[]bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers", bm.URL)
+	resp, err := bm.execute("POST", url, provisionRequest, []bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*[]bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) execute(method, url string, body map[string]interface{}, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
 	}
@@ -99,7 +108,8 @@ func (bm *BareMetalClient) execute(method, url string, result interface{}) (*res
 	request := bm.defaultClient.R().
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
 		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json")
+		SetHeader("Content-Type", "application/json").
+		SetBody(body)
 
 	if result != nil {
 		request.SetResult(result)
