@@ -3,6 +3,7 @@ package validation
 import (
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const hostnameLengthMessage = "A hostname should be between 1 and 253 characters comprised of letters, numbers, hyphens, and periods."
@@ -57,5 +58,59 @@ func ValidateBareMetalUsername(username string) error {
 			messages: validationErrors,
 		}
 	}
+	return nil
+}
+
+var PasswordValidationError = CustomValidationError{
+	messages: []string{
+		`Please provide a password that conforms to the provided rules.
+Must be at least 9 characters
+* uppercase letters
+* lowercase letters
+* numbers
+`,
+	},
+}
+
+var passwordMustIncludeTests = []func(rune) bool{
+	unicode.IsUpper,
+	unicode.IsLower,
+	unicode.IsDigit,
+}
+
+var passwordMustNotIncludeTests = []func(rune) bool{
+	unicode.IsSymbol,
+	unicode.IsPunct,
+}
+
+func ValidateBareMetalPassword(password string) error {
+	if len(password) < 9 {
+		return PasswordValidationError
+	}
+
+	for _, test := range passwordMustIncludeTests {
+		found := false
+		for _, r := range password {
+			if test(r) {
+				found = true
+			}
+		}
+		if !found {
+			return PasswordValidationError
+		}
+	}
+
+	for _, test := range passwordMustNotIncludeTests {
+		found := false
+		for _, r := range password {
+			if test(r) {
+				found = true
+			}
+		}
+		if found {
+			return PasswordValidationError
+		}
+	}
+
 	return nil
 }
