@@ -12,14 +12,6 @@ const hostnameRegexMessage = "Each element of the hostname, separated by a perio
 var hostnameRegex = regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-]{0,62}([.][a-zA-Z0-9][a-zA-Z0-9-]{0,62})*$")
 var alphaNumberDashesAndUnderscoresRegex = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-type CustomValidationError struct {
-	messages []string
-}
-
-func (v CustomValidationError) Error() string {
-	return strings.Join(v.messages, "\n")
-}
-
 func ValidateBareMetalServerName(name string) error {
 	var validationErrors []string
 	if len(name) < 1 || len(name) > 253 {
@@ -61,7 +53,7 @@ func ValidateBareMetalUsername(username string) error {
 	return nil
 }
 
-var PasswordValidationError = CustomValidationError{
+var passwordValidationError = CustomValidationError{
 	messages: []string{
 		`Please provide a password that conforms to the provided rules.
 Must be at least 9 characters
@@ -81,11 +73,12 @@ var passwordMustIncludeTests = []func(rune) bool{
 var passwordMustNotIncludeTests = []func(rune) bool{
 	unicode.IsSymbol,
 	unicode.IsPunct,
+	unicode.IsSpace,
 }
 
 func ValidateBareMetalPassword(password string) error {
 	if len(password) < 9 {
-		return PasswordValidationError
+		return passwordValidationError
 	}
 
 	for _, test := range passwordMustIncludeTests {
@@ -96,7 +89,7 @@ func ValidateBareMetalPassword(password string) error {
 			}
 		}
 		if !found {
-			return PasswordValidationError
+			return passwordValidationError
 		}
 	}
 
@@ -108,7 +101,7 @@ func ValidateBareMetalPassword(password string) error {
 			}
 		}
 		if found {
-			return PasswordValidationError
+			return passwordValidationError
 		}
 	}
 

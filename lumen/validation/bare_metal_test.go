@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -93,6 +94,8 @@ func TestValidateBareMetalPassword_InvalidInput(t *testing.T) {
 		"ToShort",
 		"@TestBlah",
 		"testing123",
+		"Testing 123",
+		fmt.Sprintf("Testing\n123"),
 	}
 
 	for _, input := range invalidInputs {
