@@ -75,6 +75,12 @@ func ResourceBareMetalServer() *schema.Resource {
 				Type:      schema.TypeString,
 				Required:  true,
 				Sensitive: true,
+				ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
+					if err := validation.ValidateBareMetalUsername(i.(string)); err != nil {
+						return diag.FromErr(err)
+					}
+					return nil
+				},
 			},
 			"password": {
 				Type:      schema.TypeString,
@@ -83,6 +89,12 @@ func ResourceBareMetalServer() *schema.Resource {
 				AtLeastOneOf: []string{
 					"password",
 					"public_key",
+				},
+				ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
+					if err := validation.ValidateBareMetalPassword(i.(string)); err != nil {
+						return diag.FromErr(err)
+					}
+					return nil
 				},
 			},
 			"public_key": {
