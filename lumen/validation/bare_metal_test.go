@@ -72,9 +72,24 @@ func TestValidateBareMetalUsername_InvalidInputs(t *testing.T) {
 	}
 }
 
+func TestValidateBareMetalPassword_ValidInputs(t *testing.T) {
+	validInputs := []string{
+		"Testing123",
+		"ReallyLongPasswordThatContainsSomeNumbers123",
+	}
+
+	for _, input := range validInputs {
+		err := ValidateBareMetalPassword(input)
+		assert.Nil(t, err)
+	}
+}
+
 func TestValidateBareMetalPassword_InvalidInput(t *testing.T) {
 	invalidInputs := []string{
 		"Testing123!",
+		"Testing123@",
+		"Testing123#",
+		"Testing123^",
 		"ToShort",
 		"@TestBlah",
 		"testing123",
