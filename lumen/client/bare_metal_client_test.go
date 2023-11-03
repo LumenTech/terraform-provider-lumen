@@ -216,3 +216,18 @@ func TestBareMetalClient_GetOsImages(t *testing.T) {
 	assert.Equal(t, responseBody[0]["ready"], osImage.Ready)
 	assert.Equal(t, "$45.00/MONTHLY", osImage.Price.String())
 }
+
+func TestBareMetalClient_GetServer(t *testing.T) {
+	apiResponse := &HttpResponse{
+		StatusCode: 404,
+	}
+
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, apiResponse)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.GetServer("test-id")
+	assert.Nil(t, err)
+	assert.Nil(t, server)
+}

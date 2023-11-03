@@ -91,13 +91,41 @@ func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage
 	return &retVal, nil
 }
 
-func (bm *BareMetalClient) ProvisionServer(provisionRequest map[string]interface{}) (*[]bare_metal.Server, error) {
+func (bm *BareMetalClient) GetServerByName(name string) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers", bm.URL)
-	resp, err := bm.execute("POST", url, provisionRequest, []bare_metal.Server{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Server{})
 	if err != nil {
 		return nil, err
 	}
-	return resp.Result().(*[]bare_metal.Server), nil
+
+	servers := resp.Result().(*[]bare_metal.Server)
+	for _, server := range *servers {
+		if server.Name == name {
+			return &server, nil
+		}
+	}
+	return nil, nil
+}
+
+func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, id)
+	resp, err := bm.execute("GET", url, nil, bare_metal.Server{})
+	if resp.StatusCode() == 404 {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) ProvisionServer(provisionRequest map[string]interface{}) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers", bm.URL)
+	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
 }
 
 func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
@@ -132,8 +160,7 @@ func (bm *BareMetalClient) execute(method, url string, body map[string]interface
 		} else {
 			reason = resp.Status()
 		}
-
-		return nil, fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
+		err = fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
 	}
 
 	return resp, err
