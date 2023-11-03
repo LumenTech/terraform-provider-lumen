@@ -13,6 +13,7 @@ type Server struct {
 	Status        string              `json:"status"`
 	StatusMessage string              `json:"statusMessage"`
 	Disks         []Disk              `json:"disks"`
+	BootDisk      string              `json:"bootDisk"`
 	ServiceID     string              `json:"serviceId"`
 	Prices        []ComponentPrice    `json:"prices"`
 	AccountID     string              `json:"accountId"`
@@ -33,7 +34,7 @@ type ServerConfiguration struct {
 	Memory     string `json:"memory"`
 	Storage    string `json:"storage"`
 	Disks      int    `json:"disks"`
-	Nics       int    `json:"nics"`
+	NICs       int    `json:"nics"`
 	Processors int    `json:"processors"`
 }
 
