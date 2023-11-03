@@ -119,7 +119,7 @@ func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, error) {
 	return resp.Result().(*bare_metal.Server), nil
 }
 
-func (bm *BareMetalClient) ProvisionServer(provisionRequest map[string]interface{}) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers", bm.URL)
 	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Server{})
 	if err != nil {
