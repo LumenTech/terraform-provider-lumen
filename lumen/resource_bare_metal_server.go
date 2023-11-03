@@ -4,17 +4,95 @@ import (
 	"context"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+	"strings"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/validation"
+	"time"
 )
+
+var pendingServerStatuses = []string{"provisioning", "network_provisioned", "allocated", "configured", "unknown"}
+var targetServerStatuses = []string{"provisioned", "failed", "error"}
+var possibleServerStatus = append(pendingServerStatuses, targetServerStatuses...)
 
 func ResourceBareMetalServer() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provision lumen bare metal server",
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+		},
 		CreateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			log.Printf("[INFO] Create Executed")
+			client := i.(*Clients).BareMetal
+
+			provisionRequest := bare_metal.ServerProvisionRequest{
+				Name:          data.Get("name").(string),
+				LocationID:    data.Get("location_id").(string),
+				Configuration: data.Get("configuration_name").(string),
+				OSImage:       data.Get("os_image_name").(string),
+				Credentials: bare_metal.Credentials{
+					Username:  data.Get("username").(string),
+					Password:  data.Get("password").(string),
+					PublicKey: data.Get("ssh_public_key").(string),
+				},
+			}
+
+			networkId := data.Get("network_id").(string)
+			if len(networkId) != 0 {
+				provisionRequest.NetworkID = networkId
+			} else {
+				provisionRequest.NetworkRequest = &bare_metal.NetworkProvisionRequest{
+					Name:          data.Get("network_name").(string),
+					LocationID:    provisionRequest.LocationID,
+					NetworkSizeID: data.Get("network_size_id").(string),
+					NetworkType:   "INTERNET",
+				}
+			}
+
+			server, err := client.ProvisionServer(provisionRequest)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			stateChangeConf := &resource.StateChangeConf{
+				Pending: pendingServerStatuses,
+				Target:  targetServerStatuses,
+				Refresh: func() (interface{}, string, error) {
+					s, err := client.GetServer(server.ID)
+					if err != nil {
+						return nil, "", err
+					}
+
+					found := false
+					for _, status := range possibleServerStatus {
+						if status == strings.ToLower(s.Status) {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						s.Status = "unknown"
+					}
+					return *s, strings.ToLower(s.Status), nil
+				},
+				Timeout:      90 * time.Minute,
+				Delay:        4 * time.Minute,
+				PollInterval: 30 * time.Second,
+			}
+			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			serv := refreshResult.(bare_metal.Server)
+			data.SetId(serv.ID)
+			populateServerSchema(data, serv)
 			return nil
 		},
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
@@ -118,7 +196,7 @@ func ResourceBareMetalServer() *schema.Resource {
 					return nil
 				},
 			},
-			"public_key": {
+			"ssh_public_key": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
@@ -280,7 +358,6 @@ func ResourceBareMetalServer() *schema.Resource {
 }
 
 func populateServerSchema(d *schema.ResourceData, server bare_metal.Server) {
-	d.SetId(server.ID)
 	d.Set("name", server.Name)
 	d.Set("location_id", server.LocationID)
 	d.Set("configuration_name", server.Configuration.Name)
