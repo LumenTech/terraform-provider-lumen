@@ -137,7 +137,7 @@ func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, er
 	return resp.Result().(*bare_metal.Server), nil
 }
 
-func (bm *BareMetalClient) execute(method, url string, body map[string]interface{}, result interface{}) (*resty.Response, error) {
+func (bm *BareMetalClient) execute(method, url string, body interface{}, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
 	}
@@ -145,8 +145,11 @@ func (bm *BareMetalClient) execute(method, url string, body map[string]interface
 	request := bm.defaultClient.R().
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
 		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
-		SetBody(body)
+		SetHeader("Content-Type", "application/json")
+
+	if body != nil {
+		request.SetBody(body)
+	}
 
 	if result != nil {
 		request.SetResult(result)
