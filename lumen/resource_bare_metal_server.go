@@ -198,15 +198,86 @@ func ResourceBareMetalServer() *schema.Resource {
 					},
 				},
 			},
-			"status":         {},
-			"status_message": {},
-			"disks":          {},
-			"boot_disk":      {},
-			"service_id":     {},
-			"prices":         {},
-			"account_id":     {},
-			"created":        {},
-			"updated":        {},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"status_message": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"disks": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"boot": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disk_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"path": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"size": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"boot_disk": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"prices": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"price": {
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"amount": {
+										Type:     schema.TypeFloat,
+										Computed: true,
+									},
+									"period": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"created": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"updated": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
