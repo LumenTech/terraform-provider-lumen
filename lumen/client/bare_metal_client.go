@@ -100,6 +100,15 @@ func (bm *BareMetalClient) ProvisionServer(provisionRequest map[string]interface
 	return resp.Result().(*[]bare_metal.Server), nil
 }
 
+func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
+	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
 func (bm *BareMetalClient) execute(method, url string, body map[string]interface{}, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
