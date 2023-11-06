@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"strconv"
+	"strings"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
 )
@@ -128,12 +129,42 @@ func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerPro
 	return resp.Result().(*bare_metal.Server), nil
 }
 
+var deletingStatus = []string{"releasing", "networking_removed", "release"}
+
 func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
 	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
-	if err != nil {
+	if err != nil && resp.StatusCode() != 404 && resp.StatusCode() != 409 {
 		return nil, err
 	}
+
+	if resp.StatusCode() == 404 {
+		return nil, nil
+	}
+
+	if resp.StatusCode() == 409 {
+		// if server returns 409 then it is in a transitioning status and could be in the process of deleting
+		server, getServerError := bm.GetServer(serverId)
+		if getServerError != nil {
+			return nil, fmt.Errorf("failed to retrieve server (%s) unable to figure out state", serverId)
+		} else if server == nil {
+			return nil, nil
+		}
+
+		foundDeletingStatus := false
+		for _, status := range deletingStatus {
+			if strings.ToLower(server.Status) == status {
+				foundDeletingStatus = true
+			}
+		}
+
+		if foundDeletingStatus {
+			return server, nil
+		}
+
+		return server, fmt.Errorf("failed to delete server (%s) due to pending change", serverId)
+	}
+
 	return resp.Result().(*bare_metal.Server), nil
 }
 
