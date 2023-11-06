@@ -17,7 +17,7 @@ type HttpResponse struct {
 	Body       interface{}
 }
 
-func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse *HttpResponse) (*httptest.Server, *int) {
+func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse HttpResponses) (*httptest.Server, *int) {
 	apigeeCallCount := 0
 	return setupTestServer(t, HttpResponses{
 		{
@@ -31,7 +31,7 @@ func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse *HttpRes
 	}, &apigeeCallCount, apiResponse), &apigeeCallCount
 }
 
-func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int, apiResponse *HttpResponse) *httptest.Server {
+func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int, apiResponses HttpResponses) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var response HttpResponse
 		if req.RequestURI == "/oauth/token" {
@@ -52,7 +52,11 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 			assert.Equal(t, "application/json", req.Header.Get("Accept"))
 			assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 			assert.NotEmpty(t, req.Header.Get("x-billing-account-number"))
-			response = *apiResponse
+
+			response = apiResponses[0]
+			if len(apiResponses) > 1 {
+				apiResponses = apiResponses[1:]
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -146,7 +150,7 @@ func TestRefreshToken_RetryableClient(t *testing.T) {
 	assert.Equal(t, apigeeCallCount, 5)
 }
 
-func TestBareMetalClient_GetLocations(t *testing.T) {
+func TestGetLocations(t *testing.T) {
 	responseBody := []map[string]interface{}{
 		{
 			"id":     "test-id",
@@ -155,11 +159,13 @@ func TestBareMetalClient_GetLocations(t *testing.T) {
 			"region": "NA",
 		},
 	}
-	apiResponse := &HttpResponse{
-		StatusCode: 200,
-		Body:       responseBody,
+	apiResponses := HttpResponses{
+		{
+			StatusCode: 200,
+			Body:       responseBody,
+		},
 	}
-	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponse)
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponses)
 	defer testServer.Close()
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
@@ -177,7 +183,7 @@ func TestBareMetalClient_GetLocations(t *testing.T) {
 	assert.Equal(t, responseBody[0]["region"], location.Region)
 }
 
-func TestBareMetalClient_GetOsImages(t *testing.T) {
+func TestGetOsImages(t *testing.T) {
 	responseBody := []map[string]interface{}{
 		{
 			"name":  "Ubuntu 20.04",
@@ -196,11 +202,13 @@ func TestBareMetalClient_GetOsImages(t *testing.T) {
 			},
 		},
 	}
-	apiResponse := &HttpResponse{
-		StatusCode: 200,
-		Body:       responseBody,
+	apiResponses := HttpResponses{
+		{
+			StatusCode: 200,
+			Body:       responseBody,
+		},
 	}
-	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponse)
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponses)
 	defer testServer.Close()
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
@@ -215,4 +223,102 @@ func TestBareMetalClient_GetOsImages(t *testing.T) {
 	assert.Equal(t, responseBody[0]["name"], osImage.Name)
 	assert.Equal(t, responseBody[0]["ready"], osImage.Ready)
 	assert.Equal(t, "$45.00/MONTHLY", osImage.Price.String())
+}
+
+func TestGetServer(t *testing.T) {
+	apiResponses := HttpResponses{
+		{
+			StatusCode: 404,
+		},
+	}
+
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, apiResponses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.GetServer("test-id")
+	assert.Nil(t, err)
+	assert.Nil(t, server)
+}
+
+func TestDeleteServer_NotFoundResponse(t *testing.T) {
+	responses := HttpResponses{
+		{
+			StatusCode: 404,
+		},
+	}
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, responses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.DeleteServer("test-id")
+	assert.Nil(t, err)
+	assert.Nil(t, server)
+}
+
+func TestDeleteServer_ConflictResponse(t *testing.T) {
+	responses := HttpResponses{
+		{
+			StatusCode: 409,
+		},
+		{
+			StatusCode: 200,
+			Body: map[string]interface{}{
+				"status": "releasing",
+			},
+		},
+	}
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, responses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.DeleteServer("test-id")
+	assert.Nil(t, err)
+	assert.NotNil(t, server)
+	assert.Equal(t, "releasing", server.Status)
+}
+
+func TestDeleteServer_ConflictButServerNotFoundAfterPolling(t *testing.T) {
+	responses := HttpResponses{
+		{
+			StatusCode: 409,
+		},
+		{
+			StatusCode: 404,
+		},
+	}
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, responses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.DeleteServer("test-id")
+	assert.Nil(t, err)
+	assert.Nil(t, server)
+}
+
+func TestDeleteServer_ConflictButServerInFailedStatus(t *testing.T) {
+	responses := HttpResponses{
+		{
+			StatusCode: 409,
+		},
+		{
+			StatusCode: 200,
+			Body: map[string]interface{}{
+				"status": "failed",
+			},
+		},
+	}
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, responses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.DeleteServer("test-id")
+	assert.NotNil(t, err)
+	assert.NotNil(t, server)
+	assert.Equal(t, "failed", server.Status)
 }

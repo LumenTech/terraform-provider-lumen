@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"strconv"
+	"strings"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
 )
@@ -47,7 +48,7 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 
 func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
 	url := fmt.Sprintf("%s/locations", bm.URL)
-	resp, err := bm.execute("GET", url, []bare_metal.Location{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Location{})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
 
 func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.Configuration, error) {
 	url := fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.Configuration{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Configuration{})
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,7 @@ func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.C
 
 func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.NetworkSize, error) {
 	url := fmt.Sprintf("%s/locations/%s/networkSizes", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.NetworkSize{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.NetworkSize{})
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +78,7 @@ func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.Net
 
 func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage, error) {
 	url := fmt.Sprintf("%s/locations/%s/osImages", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, []bare_metal.OsImage{})
+	resp, err := bm.execute("GET", url, nil, []bare_metal.OsImage{})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +92,92 @@ func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage
 	return &retVal, nil
 }
 
-func (bm *BareMetalClient) execute(method, url string, result interface{}) (*resty.Response, error) {
+func (bm *BareMetalClient) GetServerByName(name string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers", bm.URL)
+	resp, err := bm.execute("GET", url, nil, []bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+
+	servers := resp.Result().(*[]bare_metal.Server)
+	for _, server := range *servers {
+		if server.Name == name {
+			return &server, nil
+		}
+	}
+	return nil, nil
+}
+
+func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, id)
+	resp, err := bm.execute("GET", url, nil, bare_metal.Server{})
+	if resp.StatusCode() == 404 {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers", bm.URL)
+	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.ServerUpdateRequest) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
+	resp, err := bm.execute("PUT", url, request, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+var deletingStatus = []string{"releasing", "networking_removed", "release"}
+
+func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
+	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
+	if err != nil && resp.StatusCode() != 404 && resp.StatusCode() != 409 {
+		return nil, err
+	}
+
+	if resp.StatusCode() == 404 {
+		return nil, nil
+	}
+
+	if resp.StatusCode() == 409 {
+		// if server returns 409 then it is in a transitioning status and could be in the process of deleting
+		server, getServerError := bm.GetServer(serverId)
+		if getServerError != nil {
+			return nil, fmt.Errorf("failed to retrieve server (%s) unable to figure out state", serverId)
+		} else if server == nil {
+			return nil, nil
+		}
+
+		foundDeletingStatus := false
+		for _, status := range deletingStatus {
+			if strings.ToLower(server.Status) == status {
+				foundDeletingStatus = true
+			}
+		}
+
+		if foundDeletingStatus {
+			return server, nil
+		}
+
+		return server, fmt.Errorf("failed to delete server (%s) due to pending change", serverId)
+	}
+
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) execute(method, url string, body interface{}, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
 	}
@@ -100,6 +186,10 @@ func (bm *BareMetalClient) execute(method, url string, result interface{}) (*res
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", bm.ApigeeToken)).
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json")
+
+	if body != nil {
+		request.SetBody(body)
+	}
 
 	if result != nil {
 		request.SetResult(result)
@@ -113,8 +203,7 @@ func (bm *BareMetalClient) execute(method, url string, result interface{}) (*res
 		} else {
 			reason = resp.Status()
 		}
-
-		return nil, fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
+		err = fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
 	}
 
 	return resp, err
