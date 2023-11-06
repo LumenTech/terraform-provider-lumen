@@ -83,3 +83,7 @@ type Credentials struct {
 	Password  string `json:"password,omitempty"`
 	PublicKey string `json:"publicKey,omitempty"`
 }
+
+type ServerUpdateRequest struct {
+	Name string `json:"name"`
+}
