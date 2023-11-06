@@ -1,31 +1,24 @@
 package bare_metal
 
 type Server struct {
-	ID            string              `json:"id"`
-	Name          string              `json:"name"`
-	MachineID     string              `json:"machineId"`
-	MachineName   string              `json:"machineName"`
-	LocationID    string              `json:"locationId"`
-	Location      string              `json:"location"`
-	Configuration ServerConfiguration `json:"configuration"`
-	OSImage       string              `json:"osImage"`
-	Networks      []ServerNetwork     `json:"networks"`
-	Status        string              `json:"status"`
-	StatusMessage string              `json:"statusMessage"`
-	Disks         []Disk              `json:"disks"`
-	BootDisk      string              `json:"bootDisk"`
-	ServiceID     string              `json:"serviceId"`
-	Prices        []ComponentPrice    `json:"prices"`
-	AccountID     string              `json:"accountId"`
-	Created       string              `json:"created"`
-	Updated       string              `json:"updated"`
-}
-
-func (s Server) ToMap() map[string]interface{} {
-	return map[string]interface{}{
-		"name":   s.Name,
-		"status": s.Status,
-	}
+	ID            string                   `json:"id"`
+	Name          string                   `json:"name"`
+	MachineID     string                   `json:"machineId"`
+	MachineName   string                   `json:"machineName"`
+	LocationID    string                   `json:"locationId"`
+	Location      string                   `json:"location"`
+	Configuration ServerConfiguration      `json:"configuration"`
+	OSImage       string                   `json:"osImage"`
+	Networks      []ServerNetwork          `json:"networks"`
+	Status        string                   `json:"status"`
+	StatusMessage string                   `json:"statusMessage"`
+	Disks         []map[string]interface{} `json:"disks"`
+	BootDisk      string                   `json:"bootDisk"`
+	ServiceID     string                   `json:"serviceId"`
+	Prices        []ComponentPrice         `json:"prices"`
+	AccountID     string                   `json:"accountId"`
+	Created       string                   `json:"created"`
+	Updated       string                   `json:"updated"`
 }
 
 type ServerConfiguration struct {
@@ -47,13 +40,6 @@ type ServerNetwork struct {
 	StatusMessage string `json:"statusMessage"`
 	IP            string `json:"ip"`
 	VLAN          string `json:"vlan"`
-}
-
-type Disk struct {
-	Boot     bool   `json:"boot"`
-	DiskType string `json:"disk_type"`
-	Path     string `json:"path"`
-	Size     int64  `json:"size"`
 }
 
 type ComponentPrice struct {
