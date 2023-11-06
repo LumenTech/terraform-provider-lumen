@@ -2,6 +2,7 @@ package lumen
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -27,7 +28,6 @@ func ResourceBareMetalServer() *schema.Resource {
 			Update: schema.DefaultTimeout(5 * time.Minute),
 		},
 		CreateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			log.Printf("[INFO] Create Executed")
 			client := i.(*Clients).BareMetal
 
 			provisionRequest := bare_metal.ServerProvisionRequest{
@@ -70,6 +70,9 @@ func ResourceBareMetalServer() *schema.Resource {
 
 					found := false
 					for _, status := range possibleServerStatus {
+						// This is to avoid failure if a new status is added due to the logic
+						// of the polling mechanism if the status isn't in the pending or target list
+						// it is considered a failure and errors out immediate.
 						if status == strings.ToLower(s.Status) {
 							found = true
 							break
@@ -96,7 +99,6 @@ func ResourceBareMetalServer() *schema.Resource {
 			return nil
 		},
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			log.Printf("[INFO] Read Executed")
 			client := i.(*Clients).BareMetal
 
 			serverId := data.Id()
@@ -115,11 +117,63 @@ func ResourceBareMetalServer() *schema.Resource {
 			return nil
 		},
 		UpdateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			log.Printf("[INFO] Update Executed")
+			// Currently update can only be used for changing the server name
+			if data.HasChange("name") {
+				serverId := data.Id()
+				updateRequest := bare_metal.ServerUpdateRequest{
+					Name: data.Get("name").(string),
+				}
+
+				client := i.(*Clients).BareMetal
+				server, err := client.UpdateServer(serverId, updateRequest)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+
+				populateServerSchema(data, *server)
+			}
+
 			return nil
 		},
 		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			log.Printf("[INFO] Destroy Executed")
+			client := i.(*Clients).BareMetal
+			serverId := data.Id()
+			server, err := client.DeleteServer(serverId)
+			if err != nil {
+				return diag.FromErr(err)
+			} else if server == nil || strings.ToLower(server.Status) == "released" {
+				data.SetId("")
+				return nil
+			}
+
+			stateChangeConf := &resource.StateChangeConf{
+				Pending: []string{"releasing", "networking_removed"},
+				Target:  []string{"released"},
+				Refresh: func() (interface{}, string, error) {
+					s, e := client.GetServer(serverId)
+					if e != nil {
+						return nil, "", err
+					} else if s == nil {
+						s = server
+						s.Status = "released"
+					}
+					return *s, strings.ToLower(s.Status), nil
+				},
+				Timeout:      90 * time.Minute,
+				Delay:        2 * time.Minute,
+				PollInterval: 30 * time.Second,
+			}
+			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			fmt.Printf(
+				"[DEBUG] Deleted server (%s) final status (%s)",
+				serverId,
+				refreshResult.(bare_metal.Server).Status,
+			)
+			data.SetId("")
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
