@@ -129,6 +129,15 @@ func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerPro
 	return resp.Result().(*bare_metal.Server), nil
 }
 
+func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.ServerUpdateRequest) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
+	resp, err := bm.execute("PUT", url, request, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
 var deletingStatus = []string{"releasing", "networking_removed", "release"}
 
 func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
