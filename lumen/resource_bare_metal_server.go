@@ -241,7 +241,7 @@ func ResourceBareMetalServer() *schema.Resource {
 				Sensitive: true,
 				AtLeastOneOf: []string{
 					"password",
-					"public_key",
+					"ssh_public_key",
 				},
 				ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
 					if err := validation.ValidateBareMetalPassword(i.(string)); err != nil {
@@ -256,7 +256,7 @@ func ResourceBareMetalServer() *schema.Resource {
 				Sensitive: true,
 				AtLeastOneOf: []string{
 					"password",
-					"public_key",
+					"ssh_public_key",
 				},
 			},
 			"id": {
@@ -347,30 +347,6 @@ func ResourceBareMetalServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"disks": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"boot": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"disk_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"path": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"size": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
 			"boot_disk": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -441,16 +417,6 @@ func populateServerSchema(d *schema.ResourceData, server bare_metal.Server) {
 	d.Set("networks", networks)
 	d.Set("status", server.Status)
 	d.Set("status_message", server.StatusMessage)
-	disks := make([]map[string]interface{}, len(server.Disks))
-	for i, disk := range server.Disks {
-		disks[i] = map[string]interface{}{
-			"boot":      disk.Boot,
-			"disk_type": disk.DiskType,
-			"path":      disk.Path,
-			"size":      disk.Size,
-		}
-	}
-	d.Set("disks", disks)
 	d.Set("boot_disk", server.BootDisk)
 	d.Set("service_id", server.ServiceID)
 	prices := make([]map[string]interface{}, len(server.Prices))
