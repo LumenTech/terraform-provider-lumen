@@ -45,9 +45,8 @@ func TestValidationBareMetalUsername_ValidInputs(t *testing.T) {
 	validInputs := []string{
 		"username",
 		"user-name",
-		"user_name",
-		"User-_name",
-		"NotRoot",
+		"username$",
+		"username123",
 	}
 
 	for _, input := range validInputs {
@@ -65,6 +64,7 @@ func TestValidateBareMetalUsername_InvalidInputs(t *testing.T) {
 		"user*name",
 		"#username",
 		"@username",
+		"-username",
 	}
 
 	for _, input := range invalidInputs {

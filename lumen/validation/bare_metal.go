@@ -10,7 +10,9 @@ const hostnameLengthMessage = "A hostname should be between 1 and 253 characters
 const hostnameRegexMessage = "Each element of the hostname, separated by a period, should be at most 63 characters and should not begin with a hyphen."
 
 var hostnameRegex = regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-]{0,62}([.][a-zA-Z0-9][a-zA-Z0-9-]{0,62})*$")
-var alphaNumberDashesAndUnderscoresRegex = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+// var alphaNumberDashesAndUnderscoresRegex = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var usernameRegex = regexp.MustCompile("^[a-z_][a-z0-9_-]*[$]?$")
 
 func ValidateBareMetalServerName(name string) error {
 	var validationErrors []string
@@ -41,8 +43,9 @@ func ValidateBareMetalUsername(username string) error {
 		validationErrors = append(validationErrors, "The username 'root' is not permitted.")
 	}
 
-	if !alphaNumberDashesAndUnderscoresRegex.Match([]byte(username)) {
-		validationErrors = append(validationErrors, "The username can only contain alphanumeric characters, dashes, and underscores.")
+	if !usernameRegex.Match([]byte(username)) {
+		validationErrors = append(validationErrors, "The username can only contain lowercase letters, numbers, and hyphens.  "+
+			"The username should not lead with a hyphen and may optionally end with a $.")
 	}
 
 	if len(validationErrors) > 0 {
