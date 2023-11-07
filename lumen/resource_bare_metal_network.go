@@ -1,10 +1,12 @@
 package lumen
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"golang.org/x/net/context"
+	"log"
 	"strings"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
@@ -75,6 +77,84 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			retNetwork := refreshResult.(bare_metal.Network)
 			data.SetId(retNetwork.ID)
 			populateNetworkSchema(data, retNetwork)
+			return nil
+		},
+		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+			client := i.(*Clients).BareMetal
+
+			networkId := data.Id()
+			network, err := client.GetNetwork(networkId)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			if network == nil {
+				log.Printf("[DEBUG] Network %s was not found - removing from state!", networkId)
+				data.SetId("")
+				return nil
+			}
+
+			populateNetworkSchema(data, *network)
+			return nil
+		},
+		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+			client := i.(*Clients).BareMetal
+			networkId := data.Id()
+			network, err := client.DeleteNetwork(networkId)
+			if err != nil {
+				return diag.FromErr(err)
+			} else if network == nil {
+				data.SetId("")
+				return nil
+			}
+
+			stateChangeConf := &resource.StateChangeConf{
+				Pending: []string{"deleting"},
+				Target:  []string{"deleted"},
+				Refresh: func() (interface{}, string, error) {
+					n, e := client.GetNetwork(networkId)
+					if e != nil {
+						return nil, "", err
+					} else if n == nil {
+						n = network
+						n.Status = "deleted"
+					}
+					return *n, strings.ToLower(n.Status), nil
+				},
+				Timeout:      10 * time.Minute,
+				Delay:        2 * time.Minute,
+				PollInterval: 30 * time.Second,
+			}
+			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			fmt.Printf(
+				"[DEBUG] Deleted network (%s) final status (%s)",
+				networkId,
+				refreshResult.(bare_metal.Network).Status,
+			)
+			data.SetId("")
+			return nil
+		},
+		UpdateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+			// Currently update can only be used for changing the network name
+			if data.HasChange("name") {
+				networkId := data.Id()
+				updateRequest := bare_metal.NetworkUpdateRequest{
+					Name: data.Get("name").(string),
+				}
+
+				client := i.(*Clients).BareMetal
+				network, err := client.UpdateNetwork(networkId, updateRequest)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+
+				populateNetworkSchema(data, *network)
+			}
+
 			return nil
 		},
 		Schema: map[string]*schema.Schema{
