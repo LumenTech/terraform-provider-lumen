@@ -111,9 +111,10 @@ func (bm *BareMetalClient) GetServerByName(name string) (*bare_metal.Server, err
 func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, id)
 	resp, err := bm.execute("GET", url, nil, bare_metal.Server{})
-	if resp.StatusCode() == 404 {
-		return nil, nil
-	} else if err != nil {
+	if err != nil {
+		if resp != nil && resp.StatusCode() == 404 {
+			return nil, nil
+		}
 		return nil, err
 	}
 
