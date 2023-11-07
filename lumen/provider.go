@@ -95,7 +95,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	apigeeBaseURL := "https://api-dev1.lumen.com"
+	apigeeBaseURL := "https://api.lumen.com"
 	// Lumen API url
 	morpheusBareMetalApiUrl := fmt.Sprintf("%s/EdgeServices/v1/Compute/", apigeeBaseURL)
 	// Lumen Auth url
