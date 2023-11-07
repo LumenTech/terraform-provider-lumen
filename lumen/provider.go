@@ -53,7 +53,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"lumen_bare_metal_server": ResourceBareMetalServer(),
+			"lumen_bare_metal_server":  ResourceBareMetalServer(),
+			"lumen_bare_metal_network": ResourceBareMetalNetwork(),
 			/*
 				ResourceBareMetalInstance :
 					- create bare metal instance
@@ -94,7 +95,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	apigeeBaseURL := "https://api.lumen.com"
+	apigeeBaseURL := "https://api-dev1.lumen.com"
 	// Lumen API url
 	morpheusBareMetalApiUrl := fmt.Sprintf("%s/EdgeServices/v1/Compute/", apigeeBaseURL)
 	// Lumen Auth url

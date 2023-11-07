@@ -122,7 +122,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 					return *n, strings.ToLower(n.Status), nil
 				},
 				Timeout:      10 * time.Minute,
-				Delay:        2 * time.Minute,
+				Delay:        30 * time.Second,
 				PollInterval: 30 * time.Second,
 			}
 			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
@@ -169,10 +169,8 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			},
 			"network_size_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ConflictsWith: []string{
-					"network_id",
-				},
+				Required: true,
+				ForceNew: true,
 			},
 			"id": {
 				Type:     schema.TypeString,
