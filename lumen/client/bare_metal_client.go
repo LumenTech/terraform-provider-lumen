@@ -177,6 +177,33 @@ func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, er
 	return resp.Result().(*bare_metal.Server), nil
 }
 
+func (bm *BareMetalClient) ProvisionNetwork(provisionRequest bare_metal.NetworkProvisionRequest) (*bare_metal.Network, error) {
+	url := fmt.Sprintf("%s/networks", bm.URL)
+	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Network{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Network), nil
+}
+
+func (bm *BareMetalClient) UpdateNetwork(networkId string, request bare_metal.NetworkUpdateRequest) (*bare_metal.Network, error) {
+	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
+	resp, err := bm.execute("PUT", url, request, bare_metal.Network{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Network), nil
+}
+
+func (bm *BareMetalClient) DeleteNetwork(networkId string) (*bare_metal.Network, error) {
+	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
+	resp, err := bm.execute("DELETE", url, nil, bare_metal.Network{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Network), nil
+}
+
 func (bm *BareMetalClient) execute(method, url string, body interface{}, result interface{}) (*resty.Response, error) {
 	if err := bm.refreshApigeeToken(); err != nil {
 		return nil, err
