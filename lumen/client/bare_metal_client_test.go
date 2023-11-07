@@ -225,7 +225,7 @@ func TestGetOsImages(t *testing.T) {
 	assert.Equal(t, "$45.00/MONTHLY", osImage.Price.String())
 }
 
-func TestGetServer(t *testing.T) {
+func TestGetServer_NotFound(t *testing.T) {
 	apiResponses := HttpResponses{
 		{
 			StatusCode: 404,
@@ -239,6 +239,26 @@ func TestGetServer(t *testing.T) {
 
 	server, err := client.GetServer("test-id")
 	assert.Nil(t, err)
+	assert.Nil(t, server)
+}
+
+func TestGetServer_ServerError(t *testing.T) {
+	retryWaitTime = 1 * time.Second
+	retryMaxWaitTime = 1 * time.Second
+
+	apiResponses := HttpResponses{
+		{
+			StatusCode: 500,
+		},
+	}
+
+	testServer, _ := setupTestServerWithDefaultApigeeResponse(t, apiResponses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	server, err := client.GetServer("test-id")
+	assert.NotNil(t, err)
 	assert.Nil(t, server)
 }
 
