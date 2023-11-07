@@ -181,10 +181,11 @@ func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, er
 func (bm *BareMetalClient) GetNetwork(networkId string) (*bare_metal.Network, error) {
 	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
 	resp, err := bm.execute("GET", url, nil, bare_metal.Network{})
-	if err != nil && resp.StatusCode() != 404 {
+	if err != nil {
+		if resp != nil && resp.StatusCode() == 404 {
+			return nil, nil
+		}
 		return nil, err
-	} else if resp.StatusCode() == 404 {
-		return nil, nil
 	}
 
 	return resp.Result().(*bare_metal.Network), nil
