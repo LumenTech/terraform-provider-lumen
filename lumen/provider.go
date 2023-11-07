@@ -53,7 +53,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"lumen_bare_metal_server": ResourceBareMetalServer(),
+			"lumen_bare_metal_server":  ResourceBareMetalServer(),
+			"lumen_bare_metal_network": ResourceBareMetalNetwork(),
 			/*
 				ResourceBareMetalInstance :
 					- create bare metal instance

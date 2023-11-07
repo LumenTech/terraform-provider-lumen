@@ -32,11 +32,11 @@ output "server" {
 ## Schema
 
 ### Required
-name (String) "Server hostname"
-location_id (String) "A location id (can be retrieved with data_source_bare_metal_locations)"
-configuration_name (String) "A configuration name (can be retrieved with data_source_bare_metal_configurations)"
-os_image_name (String) "A os image name (can be retrieved with data_source_bare_metal_os_images)"
-username (String) "Username that should be created on the server"
+- name (String) "Server hostname"
+- location_id (String) "A location id (can be retrieved with data_source_bare_metal_locations)"
+- configuration_name (String) "A configuration name (can be retrieved with data_source_bare_metal_configurations)"
+- os_image_name (String) "A os image name (can be retrieved with data_source_bare_metal_os_images)"
+- username (String) "Username that should be created on the server"
 
 
 ### Optional
