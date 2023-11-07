@@ -18,8 +18,13 @@ type Network struct {
 	Updated      string           `json:"updated"`
 }
 
+type NetworkProvisionRequest struct {
+	Name          string `json:"name"`
+	LocationID    string `json:"locationId"`
+	NetworkSizeID string `json:"networkSizeId"`
+	NetworkType   string `json:"networkType"`
+}
+
 type NetworkUpdateRequest struct {
-	NetworkID string `json:"networkId"`
-	Name      string `json:"name"`
-	AccountID string `json:"accountId"`
+	Name string `json:"name"`
 }
