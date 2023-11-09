@@ -3,7 +3,7 @@
 | resource_bare_metal_network | Details on bare metal network creation |
 
 ## Introduction
-This document provides details on the resource to create Lumen bare metal network(s).
+This document provides details on the resource to create Lumen network(s) associated with the bare metal product.
 
 ## Example Usage
 `main.tf`

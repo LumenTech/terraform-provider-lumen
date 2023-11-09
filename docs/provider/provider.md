@@ -1,29 +1,35 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Lumen Terraform Provider  | Details on Lumen Terraform provider  |
+| Page_Title      | Description                           |
+|-----------------|---------------------------------------|
+| Lumen Terraform Provider  | Details on Lumen's Terraform provider |
 
 ## Introduction
-This document outlines details on lumen terraform provider. It walks through details on provider schema, and lumen provider data_source_order and resource_order that is offered by lumen terraform provider. Also details related to how to use lumen provider is mentioned.
+This document outlines details on Lumen's Terraform provider. It walks through details on provider schema, and lumen provider data_source_order and resource_order that is offered by lumen terraform provider. Also details related to how to use lumen provider is mentioned.
 
 ## Schema
 
 ### Required
-- url (String) "Lumen API endpoint URL where requests will be directed"
-- access_token (String) "Access Token of Lumen API user, instead of authenticating with username and password"
+- username (String) "Lumen API username for authentication"
+- password (String) "Password of Lumen API user for authentication"
 
 ### Optional
-- username (String) "Lumen API username for authentication"
-- password (String) "Password of Lumen API user for authentication",
+- account_number (String) "Account number for this Lumen account"
+- api_access_token (String) "Deprecated - Access Token of Lumen API user, instead of authenticating with username and password"
+- api_refresh_token (String) "Deprecated - Refresh Token of Lumen API user"
 
 ## Data Sources
 ```golang
 DataSourcesMap: {
+    "lumen_bare_metal_configurations": DataSourceBareMetalConfigurations(),
+    "lumen_bare_metal_locations":      DataSourceBareMetalLocations(),
+    "lumen_bare_metal_network_sizes":  DataSourceBareMetalNetworkSizes(),
+    "lumen_bare_metal_os_images":      DataSourceBareMetalOsImages(),
+    // Deprecated Data Sources (below)
     "lumen_bare_metal_instances":     DataSourceBareMetalAllInstances(),
     "lumen_bare_metal_instance_id":   DataSourceBareMetalInstanceId(),
     "lumen_bare_metal_instance_name": DataSourceBareMetalInstanceName(),
     "lumen_network_instances":        DataSourceNetworkAllInstances(),
-		"lumen_network_instance_id":      DataSourceNetworkInstanceId(),
-		"lumen_network_instance_name":    DataSourceNetworkInstanceName(),
+    "lumen_network_instance_id":      DataSourceNetworkInstanceId(),
+    "lumen_network_instance_name":    DataSourceNetworkInstanceName(),
 },
 ```
 Details on data-sources are provided in [docs](../data-sources).
@@ -31,6 +37,9 @@ Details on data-sources are provided in [docs](../data-sources).
 # Resources
 ```golang
 ResourcesMap: {
+    "lumen_bare_metal_server":  ResourceBareMetalServer(), 
+    "lumen_bare_metal_network": ResourceBareMetalNetwork(), 
+    // Deprecated Resources (below) 
     "lumen_bare_metal_instance": ResourceBareMetalInstance(),
     "lumen_network_instance":    ResourceNetworkInstance(),
 },
@@ -46,18 +55,19 @@ Details on resources are provided in [docs](../resources).
 terraform {
   required_providers {
     lumen = {
-      source = "lumen.com/lumentech/lumen"
-      version = "0.4.1"
+      source = "LumenTech/lumen"
+      version = "1.0.0"
     }
   }
 }
 
-# Provider access creds
 provider "lumen" {
-  username = var.lumen_username
-  password = var.lumen_password
-  api_access_token = var.lumen_api_access_token
-  api_refresh_token = var.lumen_api_refresh_token
+  # Configuration options
+  username = var.username
+  password = var.password
+  account_number = var.account_number
+  api_access_token = var.api_access_token
+  api_refresh_token = var.api_refresh_token
 }
 ```
 
@@ -65,14 +75,7 @@ provider "lumen" {
 ```hcl
 - "username" : $consumer_key
 - "password" : $consumer_secret
-- "lumen_api_access_token": $lumen_api_access_token
-- "lumen_api_refresh_token": $lumen_api_refresh_token
-```
-
-`terraform.tfvars`
-```hcl
-lumen_username = $consumer_key
-lumen_password = $consumer_secret
-lumen_api_access_token = $lumen_api_access_token
-lumen_api_refresh_token = $lumen_api_refresh_token
+- "account_number": $lumen_account_number
+- "api_access_token": $lumen_api_access_token
+- "api_refresh_token": $lumen_api_refresh_token
 ```

@@ -56,6 +56,7 @@ func Provider() *schema.Provider {
 			"lumen_bare_metal_server":  ResourceBareMetalServer(),
 			"lumen_bare_metal_network": ResourceBareMetalNetwork(),
 			/*
+				Deprecated Resources
 				ResourceBareMetalInstance :
 					- create bare metal instance
 					- read created instance
@@ -74,7 +75,7 @@ func Provider() *schema.Provider {
 			"lumen_bare_metal_network_sizes":  DataSourceBareMetalNetworkSizes(),
 			"lumen_bare_metal_os_images":      DataSourceBareMetalOsImages(),
 			/*
-				Deprecated Resources
+				Deprecated Data Sources
 				DataSourceBareMetalAllInstances : lists all instances currently with tenant.
 				DataSourceBareMetalInstanceId : lists details for a particular instance based on instance id.
 				DataSourceBareMetalInstanceName : lists details for a particular instance based on instance name.

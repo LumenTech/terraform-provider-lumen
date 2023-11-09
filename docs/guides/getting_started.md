@@ -1,90 +1,39 @@
-## Prerequisites
-Download and Install:
-- [Golang](https://go.dev/doc/install) >= 1.18.3
-- [Terraform](https://www.terraform.io/downloads) >= 1.2.3
+## Lumen Provider Operations
+Lumen's terraform provider supports the following data sources and resources:
+- data_sources:
+  - `data_source_bare_metal_locations`:  Provides a list of locations for Lumen bare metal
+  - `data_source_bare_metal_configurations`: Provides a list of Lumen bare metal configurations at a specific location
+  - `data_source_bare_metal_osImages`: Provides a list of available OS images at a specific location
+  - `data_source_bare_metal_networkSizes`: Provides a list of Lumen network sizes at a specific location
+- resources:
+  - `resource_bare_metal_server`: Used for bare metal server creation
+  - `resource_bare_metal_network`: Used for bare metal network creation
 
-## Installation
-Clone terraform-provider-lumen from github:
-```shell
-$ git clone https://github.com/CenturyLink/terraform-provider-lumen.git
-```
-
-## Setup and install Lumen Terraform Provider
-Next, setup and install terraform provider lumen technologies.
-```shell
-$ cd terraform-provider-lumen
-$ make setup
-$ make install
-```
-This will install SDKs for lumen terraform provider to execute API operations.
+## Deprecated Provider Operations
+The following data sources and resources use the old backend API. Once you have been migrated to the new version of Lumen Edge Bare Metal API, they will no longer be supported.
+- data_sources:
+  - `data_source_bare_metal_instances`: To list all bare-metal instances under a specific tenant.
+  - `data_source_bare_metal_instance_id`: To get bare-metal instance details based on instance id.
+  - `data_source_bare_metal_instance_name`: To get bare-metal instance details based on instance name.
+  - `data_source_network_instances`: To list all network instances under a specific tenant.
+  - `data_source_bare_metal_instance_id`: To get network instance details based on instance id.
+  - `data_source_bare_metal_instance_name`: To get network instance details based on instance name.
+- resources:
+  - `create_resource_bare_metal_instance`: To build bare metal instance.
+  - `update_resource_bare_metal_instance`: To update bare metal instance.
+  - `delete_resource_bare_metal_instance`: To delete bare metal instance.
+  - `create_resource_network_instance`: To build network instance.
+  - `delete_resource_network_instance`: To delete network instance.
 
 ## Enable logging
-Terraform logs can be enabled by setting the TF_LOG environment variable to any value, to get detailed logs to appear on stderr. TF_LOG to one of the log levels TRACE, DEBUG, INFO, WARN or ERROR to change the verbosity of the logs. To persist logged output set the TF_LOG_PATH variable to force the log to always be appended to a specific file when logging is enabled. For logging add the below lines in ~/.bashrc, close the working sessions and open a new session.
+Terraform logs can be enabled by setting the TF_LOG environment variable to get detailed logs to appear on stderr. Log level options are: TRACE, DEBUG, INFO, WARN or ERROR to change the verbosity of the logs. To persist logged output, set the TF_LOG_PATH variable to force the log to always be appended to a specific file. The below lines can be added to ~/.bashrc.
 ```shell
 # Terraform log settings
 export TF_LOG=TRACE
 export TF_LOG_PATH="/<path_to_terraform-provider-lumen>/client/logs/terraform.log"
 ```
 
-## Generate API key for Lumen Provider
-Lumen Bare Metal users need to generate API token for authentication to use Lumen resources. Details on how to generate tokens is provided in [authentication](./authentication.md) guide.
-
-## Lumen provider operations
-At this point you are ready to perform provider operations. Lumen Terraform provider currently supports the following data-sources and resource-order operations.
-- data_sources:
-    - `data_source_bare_metal_instances`: To list all bare-metal instances under a specific tenant.
-    - `data_source_bare_metal_instance_id`: To get bare-metal instance details based on instance id.
-    - `data_source_bare_metal_instance_name`: To get bare-metal instance details based on instance name.
-    - `data_source_network_instances`: To list all network instances under a specific tenant.
-    - `data_source_bare_metal_instance_id`: To get network instance details based on instance id.
-    - `data_source_bare_metal_instance_name`: To get network instance details based on instance name.
-- resource_order:
-    - `create_resource_bare_metal_instance`: To build bare metal instance.
-    - `update_resource_bare_metal_instance`: To update bare metal instance.
-    - `delete_resource_bare_metal_instance`: To delete bare metal instance.
-    - `create_resource_network_instance`: To build network instance.
-    - `delete_resource_network_instance`: To delete network instance.
-
-Additional details for each operation, related to `schema`, `input_variables`, `output` are provided in [Lumen_Provider_Operations](../indexes.md). Depending upon use case, example scripts are provided in the repo under `examples` directory. Copy over terraform utility scripts `main.tf`, `variables.tf`, `provider.tf` and `terraform.tfvars` to client. For example to get list of instances copy over terraform files from `exmaples/data_source_bare_metal_instances` as mentioned below:
-```shell
-$ cd ~/terrform-provider-lumen/client/
-# Copy terraform configuration files
-$ cp ../examples/data_source_bare_metal_instances/*.tf* .
-
-# Copy lumen terraform provider
-$ cp ../examples/provider/*.tf* .
-```
-
-Add lumen API end point, api token obtained from above or username and password in `terraform.tfvars` file. Populate variables as required for terraform operation. Additional details are provided in docs directory for each terraform operation. Initialize workspace and execute CLI based on use case as mentioned below. 
-
-### 5.2: To create / read / update instance(s)
-```shell
-$ terraform init # initializes terraform-provider-lumen workspace
-$ terraform plan # displays list of resource(s) to be created / read / updated
-$ terraform apply --auto-approve # to create resource(s) as per plan
-```
-Curently terraform-provider-lumen-technologies supports updating instance name, description, labels. Backend dev work for updation of tags (add/remove/replace) is in place. For updating these instance(s) details, example script is provided. 
-
-### 5.3: To delete instance(s)
-```shell
-terraform init # initializes lec-terraform-provider and workspace
-terraform destroy --auto-approve # to delete the resource shown in terraform plan
-```
-
-## Go code format check
-Excute:
-```shell
-make fmtcheck
-```
-
-To fix format:
-```shell
-make fmt
-```
-
-## Clean-up
-To clean up terraform workspace, excute:
-```shell
-make clean
-```
-This will clean up existing terraform lock files and existing terraform plugins. This will not clean the terraform state files or utility files. Execute `make install` for building the provider again and execute `terraform init` to re-enable the workspace.
+## Deprecated - Generate API Key for Lumen Provider
+Lumen Bare Metal users on the older backend API need to generate API token for authentication to use Lumen resources. 
+Once you have migrated to the new version of Lumen Edge Bare Metal API, an api token is no longer needed.
+Details on how to generate tokens is provided in [authentication](./authentication.md) guide.

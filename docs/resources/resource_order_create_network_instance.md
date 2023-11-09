@@ -3,7 +3,7 @@
 | Resource_Order_Create_Network_Instance  | Details on network instance creation |
 
 ## Introduction
-This document provides deatils on resource order to create Lumen network instance(s). The API details are provided in Ref [[1]](#1). In order to create a network resource, a network instance is created first, and then the network resource id will be used in creating the bare metal resource. Example payload for creating network instance is provide in Ref [[2]](#2).
+This document provides details on resource order to create Lumen network instance(s). The API details are provided in Ref [[1]](#1). In order to create a network resource, a network instance is created first, and then the network resource id will be used in creating the bare metal resource. Example payload for creating network instance is provide in Ref [[2]](#2).
 
 ## Example Usage
 `main.tf`
