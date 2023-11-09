@@ -40,7 +40,7 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 			assert.Contains(t, req.Header.Get("Authorization"), "Basic")
 			assert.Equal(t, "application/json", req.Header.Get("Accept"))
 			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
-			assert.Equal(t, "lumen-terraform-plugin v0.5.3", req.Header.Get("User-Agent"))
+			assert.Equal(t, "lumen-terraform-plugin v1.0.0", req.Header.Get("User-Agent"))
 
 			response = apigeeResponses[0]
 			if len(apigeeResponses) > 1 {
