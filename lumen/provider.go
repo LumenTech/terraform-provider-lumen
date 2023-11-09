@@ -48,7 +48,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Sensitive:   true,
-				Description: "Lumen customer account number",
+				Description: "Lumen customer account number (required for new versions of bare metal resources/data sources)",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_NUMBER", nil),
 			},
 		},

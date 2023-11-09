@@ -2,16 +2,17 @@
 terraform {
   required_providers {
     lumen = {
-      source = "lumen.com/lumentech/lumen"
-      version = "0.5.2"
+      source = "LumenTech/lumen"
+      version = "1.0.0"
     }
   }
 }
 
 provider "lumen" {
   # Configuration options
-  username = var.lumen_username
-  password = var.lumen_password
-  api_access_token = var.lumen_api_access_token
-  api_refresh_token = var.lumen_api_refresh_token
+  username = var.username
+  password = var.password
+  account_number = var.account_number
+  api_access_token = var.api_access_token
+  api_refresh_token = var.api_refresh_token
 }
