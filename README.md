@@ -40,8 +40,8 @@ The following list of data sources are supported by Lumen's Terraform Provider:
 |-------------------------------------------------------------------------------------------------------|-------------|
 | [data_source_bare_metal_locations](./docs/data-sources/data_source_bare_metal_locations.md)           | Provides a list of locations for Lumen bare metal |
 | [data_source_bare_metal_configurations](./docs/data-sources/data_source_bare_metal_configurations.md) | Provides a list of Lumen bare metal configurations at a specific location |
-| [data_source_bare_metal_osImages](./docs/data-sources/data_source_bare_metal_osImages.md)             | Provides a list of available OS images at a specific location |
-| [data_source_bare_metal_networkSizes](./docs/data-sources/data_source_bare_metal_networkSizes.md)     | Provides a list of Lumen network sizes at a specific location |
+| [data_source_bare_metal_osImages](./docs/data-sources/data_source_bare_metal_os_images.md)             | Provides a list of available OS images at a specific location |
+| [data_source_bare_metal_networkSizes](./docs/data-sources/data_source_bare_metal_network_sizes.md)     | Provides a list of Lumen network sizes at a specific location |
 
 ## Deprecated Data Sources
 These data sources use the older backend API. Once you have migrated to the new version of Lumen Edge Bare Metal API, the below data sources are no longer supported.
