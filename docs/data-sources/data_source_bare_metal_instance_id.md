@@ -1,6 +1,10 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Data_Source_Bare_Metal_Instance_Id  | Details on bare metal instance based on instance id        |
+| Page_Title                         | Description                                         |
+|------------------------------------|-----------------------------------------------------|
+| Data_Source_Bare_Metal_Instance_Id | Details on bare metal instance based on instance id |
+
+## Deprecation Notice
+This data source will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
 
 ## Introduction
 This document provides details on data source of Lumen bare metal instance(s) details based on instance id(s). The API details are provided in Ref [[1]](#1).

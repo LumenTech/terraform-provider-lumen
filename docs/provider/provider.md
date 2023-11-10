@@ -1,6 +1,6 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Lumen Terraform Provider  | Details on Lumen Terraform provider  |
+| Page_Title               | Description                         |
+|--------------------------|-------------------------------------|
+| Lumen Terraform Provider | Details on Lumen Terraform provider |
 
 ## Introduction
 This document outlines details on lumen terraform provider. It walks through details on provider schema, and lumen provider data_source_order and resource_order that is offered by lumen terraform provider. Also details related to how to use lumen provider is mentioned.
