@@ -1,6 +1,10 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Resource_Order_Create_Network_Instance  | Details on network instance creation |
+| Page_Title                             | Description                          |
+|----------------------------------------|--------------------------------------|
+| Resource_Order_Create_Network_Instance | Details on network instance creation |
+
+## Deprecation Notice
+This resource will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
 
 ## Introduction
 This document provides details on resource order to create Lumen network instance(s). The API details are provided in Ref [[1]](#1). In order to create a network resource, a network instance is created first, and then the network resource id will be used in creating the bare metal resource. Example payload for creating network instance is provide in Ref [[2]](#2).
