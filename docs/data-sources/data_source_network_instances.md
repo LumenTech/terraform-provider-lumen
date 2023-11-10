@@ -1,6 +1,10 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Data_Source_Network_Instances  | Details on network instances for a particular tenant        |
+| Page_Title                    | Description                                          |
+|-------------------------------|------------------------------------------------------|
+| Data_Source_Network_Instances | Details on network instances for a particular tenant |
+
+## Deprecation Notice
+This data source will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
 
 ## Introduction
 This document provides Lumen network instance(s) detail for a specific tenant. The API details are provided in Ref [[1]](#1).

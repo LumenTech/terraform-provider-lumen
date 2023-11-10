@@ -1,6 +1,10 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Resource_Order_Update_Bare_Metal_Instance_Id  | Details on bare metal instance update |
+| Page_Title                                   | Description                           |
+|----------------------------------------------|---------------------------------------|
+| Resource_Order_Update_Bare_Metal_Instance_Id | Details on bare metal instance update |
+
+## Deprecation Notice
+This resource will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
 
 ## Introduction
 This document provides details on resource order to update Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1).

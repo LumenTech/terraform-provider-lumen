@@ -1,9 +1,18 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Resource_Order_Create_Bare_Metal_Instance  | Details on bare metal instance creation |
+| Page_Title                                | Description                             |
+|-------------------------------------------|-----------------------------------------|
+| Resource_Order_Create_Bare_Metal_Instance | Details on bare metal instance creation |
+
+## Deprecation Notice
+This resource will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
+
 
 ## Introduction
-This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref [[1]](#1) under section Request Body in the drop down "Instance Request - Bare Metal". In order to create a bare metal resource, a network resource needs to be created first, and then the id from the created network resource will be used in creating the bare metal resource. Example payload for creating bare-metal instance is provide in Ref [[2]](#2), under the section "Create An Instance Bare Metal - Request Body".
+This document provides details on resource order to create Lumen bare metal instance(s). The API details are provided in Ref 
+[[1]](#1) under section Request Body in the drop down "Instance Request - Bare Metal". In order to create a bare metal resource, 
+a network resource needs to be created first, and then the id from the created network resource will be used in creating the 
+bare metal resource. Example payload for creating bare-metal instance is provide in Ref [[2]](#2), under the section "Create 
+An Instance Bare Metal - Request Body".
 
 ## Example Usage
 `main.tf`

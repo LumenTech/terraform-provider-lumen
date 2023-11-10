@@ -1,6 +1,10 @@
-| Page_Title      | Description                                 |
-|-----------------|---------------------------------------------|
-| Data_Source_Network_Instance_Name  | Details on network instance(s) based on instance(s) name        |
+| Page_Title                        | Description                                              |
+|-----------------------------------|----------------------------------------------------------|
+| Data_Source_Network_Instance_Name | Details on network instance(s) based on instance(s) name |
+
+## Deprecation Notice
+This data source will be deprecated in the future as we are moving to a new backend api which will have a different contract.
+Once we release the new API we will release a new version of this provider which will have new resources and data sources available.
 
 ## Introduction
 This document provides data sources of Lumen network instance(s) details based on instance name(s). The API details are provided in Ref [[1]](#1).
