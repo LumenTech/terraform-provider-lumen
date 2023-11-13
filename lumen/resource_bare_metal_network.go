@@ -8,13 +8,14 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"strings"
+	client2 "terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
 )
 
 var pendingNetworkStatuses = []string{"provisioning", "unknown"}
 var targetNetworkStatuses = []string{"provisioned", "failed"}
-var possibleNetworkStatus = append(pendingServerStatuses, targetServerStatuses...)
+var possibleNetworkStatus = append(pendingNetworkStatuses, targetNetworkStatuses...)
 
 func ResourceBareMetalNetwork() *schema.Resource {
 	return &schema.Resource{
@@ -26,7 +27,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			Update: schema.DefaultTimeout(10 * time.Minute),
 		},
 		CreateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
+			client := i.(*client2.Clients).BareMetal
 
 			provisionRequest := bare_metal.NetworkProvisionRequest{
 				Name:          data.Get("name").(string),
@@ -80,7 +81,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			return nil
 		},
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
+			client := i.(*client2.Clients).BareMetal
 
 			networkId := data.Id()
 			network, err := client.GetNetwork(networkId)
@@ -98,7 +99,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			return nil
 		},
 		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
+			client := i.(*client2.Clients).BareMetal
 			networkId := data.Id()
 			network, err := client.DeleteNetwork(networkId)
 			if err != nil {
@@ -146,7 +147,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 					Name: data.Get("name").(string),
 				}
 
-				client := i.(*Clients).BareMetal
+				client := i.(*client2.Clients).BareMetal
 				network, err := client.UpdateNetwork(networkId, updateRequest)
 				if err != nil {
 					return diag.FromErr(err)

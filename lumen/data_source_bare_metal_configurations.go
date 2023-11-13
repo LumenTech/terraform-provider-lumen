@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 )
 
@@ -11,7 +12,7 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provides a list of bare metal configurations at a specific location",
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			bmClient := i.(*Clients).BareMetal
+			bmClient := i.(*client.Clients).BareMetal
 			configurations, err := bmClient.GetConfigurations(data.Get("location_id").(string))
 			if err != nil {
 				return diag.FromErr(err)

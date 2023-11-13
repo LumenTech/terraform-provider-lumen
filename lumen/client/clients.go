@@ -1,12 +1,11 @@
-package lumen
+package client
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"terraform-provider-lumen/lumen/client"
 )
 
 type Clients struct {
-	BareMetal *client.BareMetalClient
+	BareMetal *BareMetalClient
 }
 
 type Config struct {
@@ -20,7 +19,7 @@ type Config struct {
 func (c *Config) LumenClients() (*Clients, diag.Diagnostics) {
 	if c.clients == nil {
 		c.clients = &Clients{
-			BareMetal: client.NewBareMetalClient(c.ApigeeBaseURL, c.Username, c.Password, c.AccountNumber),
+			BareMetal: NewBareMetalClient(c.ApigeeBaseURL, c.Username, c.Password, c.AccountNumber),
 		}
 	}
 	return c.clients, nil

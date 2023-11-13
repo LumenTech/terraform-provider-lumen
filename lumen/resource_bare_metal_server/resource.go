@@ -1,4 +1,4 @@
-package lumen
+package resource_bare_metal_server
 
 import (
 	"context"
@@ -9,16 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
+	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/validation"
 	"time"
 )
 
-var pendingServerStatuses = []string{"provisioning", "network_provisioned", "allocated", "configured", "unknown"}
-var targetServerStatuses = []string{"provisioned", "failed", "error"}
-var possibleServerStatus = append(pendingServerStatuses, targetServerStatuses...)
-
-func ResourceBareMetalServer() *schema.Resource {
+func Resource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provision lumen bare metal server",
 		Timeouts: &schema.ResourceTimeout{
@@ -27,82 +24,12 @@ func ResourceBareMetalServer() *schema.Resource {
 			Delete: schema.DefaultTimeout(90 * time.Minute),
 			Update: schema.DefaultTimeout(5 * time.Minute),
 		},
-		CreateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
-
-			provisionRequest := bare_metal.ServerProvisionRequest{
-				Name:          data.Get("name").(string),
-				LocationID:    data.Get("location_id").(string),
-				Configuration: data.Get("configuration_name").(string),
-				OSImage:       data.Get("os_image_name").(string),
-				Credentials: bare_metal.Credentials{
-					Username:  data.Get("username").(string),
-					Password:  data.Get("password").(string),
-					PublicKey: data.Get("ssh_public_key").(string),
-				},
-			}
-
-			networkId := data.Get("network_id").(string)
-			if len(networkId) != 0 {
-				provisionRequest.NetworkID = networkId
-			} else {
-				provisionRequest.NetworkRequest = &bare_metal.NetworkProvisionRequest{
-					Name:          data.Get("network_name").(string),
-					LocationID:    provisionRequest.LocationID,
-					NetworkSizeID: data.Get("network_size_id").(string),
-					NetworkType:   "INTERNET",
-				}
-			}
-
-			server, err := client.ProvisionServer(provisionRequest)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-
-			stateChangeConf := &resource.StateChangeConf{
-				Pending: pendingServerStatuses,
-				Target:  targetServerStatuses,
-				Refresh: func() (interface{}, string, error) {
-					s, err := client.GetServer(server.ID)
-					if err != nil {
-						return nil, "", err
-					}
-
-					found := false
-					for _, status := range possibleServerStatus {
-						// This is to avoid failure if a new status is added due to the logic
-						// of the polling mechanism if the status isn't in the pending or target list
-						// it is considered a failure and errors out immediate.
-						if status == strings.ToLower(s.Status) {
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						s.Status = "unknown"
-					}
-					return *s, strings.ToLower(s.Status), nil
-				},
-				Timeout:      90 * time.Minute,
-				Delay:        4 * time.Minute,
-				PollInterval: 30 * time.Second,
-			}
-			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-
-			serv := refreshResult.(bare_metal.Server)
-			data.SetId(serv.ID)
-			populateServerSchema(data, serv)
-			return nil
-		},
+		CreateContext: createContext,
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
+			bmClient := i.(*client.Clients).BareMetal
 
 			serverId := data.Id()
-			server, err := client.GetServer(serverId)
+			server, err := bmClient.GetServer(serverId)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -124,8 +51,8 @@ func ResourceBareMetalServer() *schema.Resource {
 					Name: data.Get("name").(string),
 				}
 
-				client := i.(*Clients).BareMetal
-				server, err := client.UpdateServer(serverId, updateRequest)
+				bmClient := i.(*client.Clients).BareMetal
+				server, err := bmClient.UpdateServer(serverId, updateRequest)
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -136,9 +63,9 @@ func ResourceBareMetalServer() *schema.Resource {
 			return nil
 		},
 		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			client := i.(*Clients).BareMetal
+			bmClient := i.(*client.Clients).BareMetal
 			serverId := data.Id()
-			server, err := client.DeleteServer(serverId)
+			server, err := bmClient.DeleteServer(serverId)
 			if err != nil {
 				return diag.FromErr(err)
 			} else if server == nil || strings.ToLower(server.Status) == "released" {
@@ -150,7 +77,7 @@ func ResourceBareMetalServer() *schema.Resource {
 				Pending: []string{"releasing", "networking_removed"},
 				Target:  []string{"released"},
 				Refresh: func() (interface{}, string, error) {
-					s, e := client.GetServer(serverId)
+					s, e := bmClient.GetServer(serverId)
 					if e != nil {
 						return nil, "", err
 					} else if s == nil {
@@ -202,26 +129,33 @@ func ResourceBareMetalServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"network_id": {
-				Type:     schema.TypeString,
+			"network_ids": {
+				Description: `List of existing networks to attach to the server being provisioned.  
+If providing multiple values it will require you to make server configuration changes for change to take effect.`,
+				Type:     schema.TypeList,
 				Optional: true,
 				ConflictsWith: []string{
 					"network_name",
 					"network_size_id",
 				},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"network_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Description: "The name of the new network to create, this is only used on initial creation.",
+				Type:        schema.TypeString,
+				Optional:    true,
 				ConflictsWith: []string{
-					"network_id",
+					"network_ids",
 				},
 			},
 			"network_size_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Description: "The id of the network size being used for the new network, this is only used on initial creation.",
+				Type:        schema.TypeString,
+				Optional:    true,
 				ConflictsWith: []string{
-					"network_id",
+					"network_ids",
 				},
 			},
 			"username": {
@@ -385,49 +319,4 @@ func ResourceBareMetalServer() *schema.Resource {
 			},
 		},
 	}
-}
-
-func populateServerSchema(d *schema.ResourceData, server bare_metal.Server) {
-	d.Set("name", server.Name)
-	d.Set("location_id", server.LocationID)
-	d.Set("configuration_name", server.Configuration.Name)
-	d.Set("os_image", server.OSImage)
-	d.Set("machine_id", server.MachineID)
-	d.Set("machine_name", server.MachineName)
-	d.Set("location", server.Location)
-	d.Set("configuration_cores", server.Configuration.Cores)
-	d.Set("configuration_memory", server.Configuration.Memory)
-	d.Set("configuration_storage", server.Configuration.Storage)
-	d.Set("configuration_disks", server.Configuration.Disks)
-	d.Set("configuration_nics", server.Configuration.NICs)
-	d.Set("configuration_processors", server.Configuration.Processors)
-	networks := make([]map[string]interface{}, len(server.Networks))
-	for i, network := range server.Networks {
-		networks[i] = map[string]interface{}{
-			"id":             network.ID,
-			"network_id":     network.NetworkID,
-			"network_name":   network.NetworkName,
-			"network_type":   network.NetworkType,
-			"status":         network.Status,
-			"status_message": network.StatusMessage,
-			"ip":             network.IP,
-			"vlan":           network.VLAN,
-		}
-	}
-	d.Set("networks", networks)
-	d.Set("status", server.Status)
-	d.Set("status_message", server.StatusMessage)
-	d.Set("boot_disk", server.BootDisk)
-	d.Set("service_id", server.ServiceID)
-	prices := make([]map[string]interface{}, len(server.Prices))
-	for i, price := range server.Prices {
-		prices[i] = map[string]interface{}{
-			"type":  price.Type,
-			"price": price.Price.String(),
-		}
-	}
-	d.Set("prices", prices)
-	d.Set("account_id", server.AccountID)
-	d.Set("created", server.Created)
-	d.Set("updated", server.Updated)
 }

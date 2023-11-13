@@ -139,6 +139,35 @@ func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.Serv
 	return resp.Result().(*bare_metal.Server), nil
 }
 
+func (bm *BareMetalClient) AttachNetwork(serverId, networkId string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
+	request := map[string]string{
+		"networkId": networkId,
+	}
+
+	resp, err := bm.execute("POST", url, request, bare_metal.Server{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
+func (bm *BareMetalClient) RemoveNetwork(serverId, networkId string) (*bare_metal.Server, error) {
+	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
+	request := map[string]string{
+		"networkId": networkId,
+	}
+	resp, err := bm.execute("DELETE", url, request, bare_metal.Server{})
+	if err != nil {
+		if resp != nil && resp.StatusCode() == 404 {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+	return resp.Result().(*bare_metal.Server), nil
+}
+
 var deletingStatus = []string{"releasing", "networking_removed", "release"}
 
 func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
@@ -242,7 +271,7 @@ func (bm *BareMetalClient) execute(method, url string, body interface{}, result 
 		if err != nil {
 			reason = err.Error()
 		} else {
-			reason = resp.Status()
+			reason = fmt.Sprintf("%s - %s", resp.Status(), resp.String())
 		}
 		err = fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
 	}
