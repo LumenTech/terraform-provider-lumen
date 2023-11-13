@@ -38,7 +38,6 @@ output "server" {
 - os_image_name (String) "A os image name (can be retrieved with data_source_bare_metal_os_images)"
 - username (String) "Username that should be created on the server"
 
-
 ### Optional
 #### network_id or (network_name, network_size_id)
 - network_id (String) "ID of network if you are using an existing network"
