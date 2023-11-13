@@ -13,6 +13,4 @@ provider "lumen" {
   username = var.username
   password = var.password
   account_number = var.account_number
-  api_access_token = var.api_access_token
-  api_refresh_token = var.api_refresh_token
 }
