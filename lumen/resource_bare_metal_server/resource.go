@@ -1,108 +1,25 @@
 package resource_bare_metal_server
 
 import (
-	"context"
-	"fmt"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
-	"strings"
-	"terraform-provider-lumen/lumen/client"
-	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/validation"
-	"time"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provision lumen bare metal server",
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(90 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(90 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
+			Create: createTimeout,
+			Read:   readTimeout,
+			Delete: deleteTimeout,
+			Update: updateTimeout,
 		},
 		CreateContext: createContext,
-		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			bmClient := i.(*client.Clients).BareMetal
-
-			serverId := data.Id()
-			server, err := bmClient.GetServer(serverId)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-
-			if server == nil {
-				log.Printf("[DEBUG] Bare metal server %s was not found - removing from state!", serverId)
-				data.SetId("")
-				return nil
-			}
-
-			populateServerSchema(data, *server)
-			return nil
-		},
-		UpdateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			// Currently update can only be used for changing the server name
-			if data.HasChange("name") {
-				serverId := data.Id()
-				updateRequest := bare_metal.ServerUpdateRequest{
-					Name: data.Get("name").(string),
-				}
-
-				bmClient := i.(*client.Clients).BareMetal
-				server, err := bmClient.UpdateServer(serverId, updateRequest)
-				if err != nil {
-					return diag.FromErr(err)
-				}
-
-				populateServerSchema(data, *server)
-			}
-
-			return nil
-		},
-		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-			bmClient := i.(*client.Clients).BareMetal
-			serverId := data.Id()
-			server, err := bmClient.DeleteServer(serverId)
-			if err != nil {
-				return diag.FromErr(err)
-			} else if server == nil || strings.ToLower(server.Status) == "released" {
-				data.SetId("")
-				return nil
-			}
-
-			stateChangeConf := &resource.StateChangeConf{
-				Pending: []string{"releasing", "networking_removed"},
-				Target:  []string{"released"},
-				Refresh: func() (interface{}, string, error) {
-					s, e := bmClient.GetServer(serverId)
-					if e != nil {
-						return nil, "", err
-					} else if s == nil {
-						s = server
-						s.Status = "released"
-					}
-					return *s, strings.ToLower(s.Status), nil
-				},
-				Timeout:      90 * time.Minute,
-				Delay:        2 * time.Minute,
-				PollInterval: 30 * time.Second,
-			}
-			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-
-			fmt.Printf(
-				"[DEBUG] Deleted server (%s) final status (%s)",
-				serverId,
-				refreshResult.(bare_metal.Server).Status,
-			)
-			data.SetId("")
-			return nil
-		},
+		ReadContext:   readContext,
+		UpdateContext: updateContext,
+		DeleteContext: deleteContext,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,

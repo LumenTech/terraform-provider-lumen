@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var createTimeout = schema.DefaultTimeout(90 * time.Minute)
+
 func createContext(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	bmClient := i.(*client.Clients).BareMetal
 
