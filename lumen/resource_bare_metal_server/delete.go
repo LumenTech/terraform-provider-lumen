@@ -41,7 +41,7 @@ func deleteContext(ctx context.Context, data *schema.ResourceData, i interface{}
 
 var deleteServerPendingStatus = []string{"releasing", "networking_removed", "unknown"}
 var deleteServerTargetStatus = []string{"released"}
-var deleteServerStatuses = append(deleteServerPendingStatus, deleteServerTargetStatus...)
+var deleteServerStatuses = append(append(deleteServerPendingStatus, deleteServerTargetStatus...), "failed", "error")
 
 func waitForServerDeletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string) (interface{}, error) {
 	stateChangeConf := &resource.StateChangeConf{
@@ -57,7 +57,7 @@ func waitForServerDeletion(ctx context.Context, bmClient *client.BareMetalClient
 
 			found := false
 			for _, status := range deleteServerStatuses {
-				if status == strings.ToLower(s.Status) || strings.ToLower(s.Status) == "failed" {
+				if status == strings.ToLower(s.Status) {
 					found = true
 					break
 				}
