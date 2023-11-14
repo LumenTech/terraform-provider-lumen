@@ -30,7 +30,7 @@ func Provider() *schema.Provider {
 			},
 			"account_number": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Sensitive:   true,
 				Description: "Lumen customer account number (required for new versions of bare metal resources/data sources)",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_NUMBER", nil),
@@ -51,7 +51,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	apigeeBaseURL := "https://api.lumen.com"
+	apigeeBaseURL := "https://api-dev1.lumen.com"
 	// Lumen username
 	username := d.Get("username").(string)
 	if username == "" {
