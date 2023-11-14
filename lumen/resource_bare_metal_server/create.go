@@ -49,18 +49,15 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	data.SetId(serv.ID)
 	populateServerSchema(data, serv)
 
-	// Attach Additional Network
-	networkWarnings := diag.Diagnostics{}
 	if len(networkIds) > 1 {
-		for _, networkId := range networkIds[1:] {
-			_, warningDiagnostic := attachNetwork(bmClient, server.ID, networkId.(string))
-			if warningDiagnostic != nil {
-				networkWarnings = append(networkWarnings, *warningDiagnostic)
-			}
+		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, networkIds[1:])
+		if refreshServer != nil {
+			populateServerSchema(data, *refreshServer)
 		}
+		return networkDiagnostics
 	}
-	// TODO: Poll until all networks have finished
-	return networkWarnings
+
+	return nil
 }
 
 var pendingServerStatuses = []string{"provisioning", "network_provisioned", "allocated", "configured", "unknown"}
@@ -111,14 +108,50 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 	return &serv, nil
 }
 
-func attachNetwork(bmClient *client.BareMetalClient, serverId, networkId string) (*bare_metal.Server, *diag.Diagnostic) {
-	server, err := bmClient.AttachNetwork(serverId, networkId)
-	if err != nil {
-		return nil, &diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  fmt.Sprintf("Error attaching network %s", networkId),
-			Detail:   fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, err),
+func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []interface{}) (*bare_metal.Server, diag.Diagnostics) {
+	var networkDiagnostics diag.Diagnostics
+	for _, networkId := range networkIds {
+		_, e := bmClient.AttachNetwork(serverId, networkId.(string))
+		if e != nil {
+			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Error attaching network %s", networkId),
+				Detail:   fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, e),
+			})
 		}
 	}
-	return server, nil
+
+	stateChangeConf := &resource.StateChangeConf{
+		Pending: []string{"provisioning"},
+		Target:  []string{"provisioned"},
+		Refresh: func() (interface{}, string, error) {
+			s, err := bmClient.GetServer(serverId)
+			if err != nil {
+				return nil, "", err
+			}
+
+			status := "provisioned"
+			for _, n := range s.Networks {
+				if strings.ToLower(n.Status) == "provisioning" {
+					status = "provisioning"
+					break
+				}
+			}
+
+			return s, status, nil
+		},
+		Timeout:      10 * time.Minute,
+		Delay:        30 * time.Second,
+		PollInterval: 30 * time.Second,
+	}
+
+	refreshResult, waitError := stateChangeConf.WaitForStateContext(ctx)
+	if waitError != nil {
+		networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Polling server for networking statuses failed",
+			Detail:   waitError.Error(),
+		})
+	}
+	return refreshResult.(*bare_metal.Server), networkDiagnostics
 }
