@@ -64,8 +64,8 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 }
 
 var pendingServerStatuses = []string{"provisioning", "network_provisioned", "allocated", "configured", "unknown"}
-var targetServerStatuses = []string{"provisioned", "failed", "error"}
-var possibleServerStatus = append(pendingServerStatuses, targetServerStatuses...)
+var targetServerStatuses = []string{"provisioned"}
+var possibleServerStatus = append(append(pendingServerStatuses, targetServerStatuses...), "failed", "error")
 
 func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, diag.Diagnostics) {
 	server, err := bmClient.ProvisionServer(provisionRequest)
