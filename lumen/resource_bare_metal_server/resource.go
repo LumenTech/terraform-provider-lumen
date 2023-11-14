@@ -55,6 +55,9 @@ If providing multiple values it will require you to make server configuration ch
 					"network_name",
 					"network_size_id",
 				},
+				ExactlyOneOf: []string{
+					"network_name",
+				},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -66,6 +69,12 @@ If providing multiple values it will require you to make server configuration ch
 				ConflictsWith: []string{
 					"network_ids",
 				},
+				RequiredWith: []string{
+					"network_size_id",
+				},
+				ExactlyOneOf: []string{
+					"network_ids",
+				},
 			},
 			"network_size_id": {
 				Description: "The id of the network size being used for the new network, this is only used on initial creation.",
@@ -73,6 +82,9 @@ If providing multiple values it will require you to make server configuration ch
 				Optional:    true,
 				ConflictsWith: []string{
 					"network_ids",
+				},
+				RequiredWith: []string{
+					"network_name",
 				},
 			},
 			"username": {
