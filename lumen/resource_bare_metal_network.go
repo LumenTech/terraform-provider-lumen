@@ -14,8 +14,8 @@ import (
 )
 
 var pendingNetworkStatuses = []string{"provisioning", "unknown"}
-var targetNetworkStatuses = []string{"provisioned", "failed"}
-var possibleNetworkStatus = append(pendingNetworkStatuses, targetNetworkStatuses...)
+var targetNetworkStatuses = []string{"provisioned"}
+var possibleNetworkStatus = append(append(pendingNetworkStatuses, targetNetworkStatuses...), "failed")
 
 func ResourceBareMetalNetwork() *schema.Resource {
 	return &schema.Resource{
