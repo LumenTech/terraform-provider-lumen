@@ -168,7 +168,7 @@ func (bm *BareMetalClient) RemoveNetwork(serverId, networkId string) (*bare_meta
 	return resp.Result().(*bare_metal.Server), nil
 }
 
-var deletingStatus = []string{"releasing", "billing_deactivated", "networking_removed", "release"}
+var deletingStatus = []string{"releasing", "billing_deactivated", "networking_removed", "released"}
 
 func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)

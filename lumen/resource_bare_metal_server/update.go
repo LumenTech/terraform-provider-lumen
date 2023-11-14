@@ -2,7 +2,9 @@ package resource_bare_metal_server
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
@@ -12,7 +14,7 @@ import (
 var updateTimeout = schema.DefaultTimeout(5 * time.Minute)
 
 func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	// Currently update can only be used for changing the server name
+	// Currently update can be used for changing the server name and attached networks
 	if data.HasChange("name") {
 		serverId := data.Id()
 		updateRequest := bare_metal.ServerUpdateRequest{
@@ -28,5 +30,110 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		populateServerSchema(data, *server)
 	}
 
+	if data.HasChange("network_ids") {
+		serverId := data.Id()
+		bmClient := i.(*client.Clients).BareMetal
+		server, err := bmClient.GetServer(serverId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		networks := server.Networks
+		oldNetworks := make([]string, len(server.Networks))
+		for i, net := range networks {
+			oldNetworks[i] = net.NetworkID
+		}
+		newNet := data.Get("network_ids").([]interface{})
+		newNetworks := make([]string, len(newNet))
+		for i, net := range newNet {
+			newNetworks[i] = net.(string)
+		}
+
+		attachNetworks := difference(newNetworks, oldNetworks)
+		detachNetworks := difference(oldNetworks, newNetworks)
+
+		var networkDiag diag.Diagnostics
+		if len(attachNetworks) > 0 {
+			refreshServer, attachNetworkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, serverId, attachNetworks)
+			if refreshServer != nil {
+				populateServerSchema(data, *refreshServer)
+			}
+			networkDiag = append(networkDiag, attachNetworkDiagnostics...)
+		}
+		if len(detachNetworks) > 0 {
+			refreshServer2, detachNetworkDiagnostics := detachNetworksAndWaitForCompletion(ctx, bmClient, serverId, detachNetworks)
+			if refreshServer2 != nil {
+				populateServerSchema(data, *refreshServer2)
+			}
+			networkDiag = append(networkDiag, detachNetworkDiagnostics...)
+		}
+		return networkDiag
+	}
+
 	return nil
+}
+
+func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
+	var networkDiagnostics diag.Diagnostics
+	for _, networkId := range networkIds {
+		_, e := bmClient.RemoveNetwork(serverId, networkId)
+		if e != nil {
+			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Error detaching network %s", networkId),
+				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", networkId, e),
+			})
+		}
+
+	}
+
+	stateChangeConf := &resource.StateChangeConf{
+		Pending: []string{"detaching"},
+		Target:  []string{"detached"},
+		Refresh: func() (interface{}, string, error) {
+			s, err := bmClient.GetServer(serverId)
+			if err != nil {
+				return nil, "", err
+			}
+
+			status := "detached"
+			for _, n := range s.Networks {
+				for _, networkId := range networkIds {
+					if n.NetworkID == networkId {
+						status = "detaching"
+						break
+					}
+				}
+			}
+
+			return s, status, nil
+		},
+		Timeout:      10 * time.Minute,
+		Delay:        30 * time.Second,
+		PollInterval: 30 * time.Second,
+	}
+
+	refreshResult, waitError := stateChangeConf.WaitForStateContext(ctx)
+	if waitError != nil {
+		networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Polling server for networking statuses failed",
+			Detail:   waitError.Error(),
+		})
+	}
+	return refreshResult.(*bare_metal.Server), networkDiagnostics
+}
+
+// difference returns the elements in `a` that aren't in `b`.
+func difference(a, b []string) []string {
+	mb := make(map[string]struct{}, len(b))
+	for _, x := range b {
+		mb[x] = struct{}{}
+	}
+	var diff []string
+	for _, x := range a {
+		if _, found := mb[x]; !found {
+			diff = append(diff, x)
+		}
+	}
+	return diff
 }

@@ -50,7 +50,11 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	populateServerSchema(data, serv)
 
 	if len(networkIds) > 1 {
-		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, networkIds[1:])
+		nIds := make([]string, len(networkIds)-1)
+		for i := 0; i < len(nIds); i++ {
+			nIds[i] = networkIds[i+1].(string)
+		}
+		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, nIds)
 		if refreshServer != nil {
 			populateServerSchema(data, *refreshServer)
 		}
@@ -108,10 +112,10 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 	return &serv, nil
 }
 
-func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []interface{}) (*bare_metal.Server, diag.Diagnostics) {
+func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
 	for _, networkId := range networkIds {
-		_, e := bmClient.AttachNetwork(serverId, networkId.(string))
+		_, e := bmClient.AttachNetwork(serverId, networkId)
 		if e != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity: diag.Warning,
@@ -130,7 +134,7 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 				return nil, "", err
 			}
 
-			status := "provisioned"
+			status := strings.ToLower(s.Status)
 			for _, n := range s.Networks {
 				if strings.ToLower(n.Status) == "provisioning" {
 					status = "provisioning"

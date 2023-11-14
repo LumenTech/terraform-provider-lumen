@@ -51,7 +51,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	apigeeBaseURL := "https://api-dev1.lumen.com"
+	apigeeBaseURL := "https://api.lumen.com"
 	// Lumen username
 	username := d.Get("username").(string)
 	if username == "" {
