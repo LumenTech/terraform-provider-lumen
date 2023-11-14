@@ -125,37 +125,41 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		}
 	}
 
-	stateChangeConf := &resource.StateChangeConf{
-		Pending: []string{"provisioning"},
-		Target:  []string{"provisioned"},
-		Refresh: func() (interface{}, string, error) {
-			s, err := bmClient.GetServer(serverId)
-			if err != nil {
-				return nil, "", err
-			}
-
-			status := strings.ToLower(s.Status)
-			for _, n := range s.Networks {
-				if strings.ToLower(n.Status) == "provisioning" {
-					status = "provisioning"
-					break
+	var refreshResult interface{}
+	for _, networkId := range networkIds {
+		stateChangeConf := &resource.StateChangeConf{
+			Pending: []string{"provisioning"},
+			Target:  []string{"provisioned"},
+			Refresh: func() (interface{}, string, error) {
+				s, err := bmClient.GetServer(serverId)
+				if err != nil {
+					return nil, "", err
 				}
-			}
 
-			return s, status, nil
-		},
-		Timeout:      10 * time.Minute,
-		Delay:        30 * time.Second,
-		PollInterval: 30 * time.Second,
+				status := "provisioning"
+				for _, n := range s.Networks {
+					if n.NetworkID == networkId {
+						status = n.Status
+						break
+					}
+				}
+
+				return s, status, nil
+			},
+			Timeout:      10 * time.Minute,
+			Delay:        30 * time.Second,
+			PollInterval: 30 * time.Second,
+		}
+		var waitError error
+		refreshResult, waitError = stateChangeConf.WaitForStateContext(ctx)
+		if waitError != nil {
+			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  fmt.Sprintf("Error polling server %s for network %s", serverId, networkId),
+				Detail:   waitError.Error(),
+			})
+		}
 	}
 
-	refreshResult, waitError := stateChangeConf.WaitForStateContext(ctx)
-	if waitError != nil {
-		networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  "Polling server for networking statuses failed",
-			Detail:   waitError.Error(),
-		})
-	}
 	return refreshResult.(*bare_metal.Server), networkDiagnostics
 }
