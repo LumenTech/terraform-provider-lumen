@@ -25,26 +25,9 @@ func deleteContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		return nil
 	}
 
-	stateChangeConf := &resource.StateChangeConf{
-		Pending: []string{"releasing", "networking_removed"},
-		Target:  []string{"released"},
-		Refresh: func() (interface{}, string, error) {
-			s, e := bmClient.GetServer(serverId)
-			if e != nil {
-				return nil, "", err
-			} else if s == nil {
-				s = server
-				s.Status = "released"
-			}
-			return *s, strings.ToLower(s.Status), nil
-		},
-		Timeout:      90 * time.Minute,
-		Delay:        2 * time.Minute,
-		PollInterval: 30 * time.Second,
-	}
-	refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(err)
+	refreshResult, waitError := waitForServerDeletion(ctx, bmClient, serverId)
+	if waitError != nil {
+		return diag.FromErr(waitError)
 	}
 
 	fmt.Printf(
@@ -54,4 +37,40 @@ func deleteContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	)
 	data.SetId("")
 	return nil
+}
+
+var deleteServerPendingStatus = []string{"releasing", "networking_removed", "unknown"}
+var deleteServerTargetStatus = []string{"released"}
+var deleteServerStatuses = append(deleteServerPendingStatus, deleteServerTargetStatus...)
+
+func waitForServerDeletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string) (interface{}, error) {
+	stateChangeConf := &resource.StateChangeConf{
+		Pending: deleteServerPendingStatus,
+		Target:  deleteServerTargetStatus,
+		Refresh: func() (interface{}, string, error) {
+			s, e := bmClient.GetServer(serverId)
+			if e != nil {
+				return nil, "", e
+			} else if s == nil {
+				return nil, "released", nil
+			}
+
+			found := false
+			for _, status := range deleteServerStatuses {
+				if status == strings.ToLower(s.Status) || strings.ToLower(s.Status) == "failed" {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				s.Status = "unknown"
+			}
+			return *s, strings.ToLower(s.Status), nil
+		},
+		Timeout:      90 * time.Minute,
+		Delay:        2 * time.Minute,
+		PollInterval: 30 * time.Second,
+	}
+	return stateChangeConf.WaitForStateContext(ctx)
 }
