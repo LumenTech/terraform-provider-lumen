@@ -114,7 +114,6 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 
 func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
-	//serverId := server.ID
 	for _, networkId := range networkIds {
 		_, e := bmClient.AttachNetwork(serverId, networkId)
 		if e != nil {
