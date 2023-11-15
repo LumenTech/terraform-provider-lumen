@@ -114,6 +114,7 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 
 func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
+	//serverId := server.ID
 	for _, networkId := range networkIds {
 		_, e := bmClient.AttachNetwork(serverId, networkId)
 		if e != nil {
@@ -125,7 +126,7 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		}
 	}
 
-	var refreshResult interface{}
+	var refreshServer *bare_metal.Server
 	for _, networkId := range networkIds {
 		stateChangeConf := &resource.StateChangeConf{
 			Pending: []string{"provisioning"},
@@ -136,6 +137,7 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 					return nil, "", err
 				}
 
+				refreshServer = s
 				status := "provisioning"
 				for _, n := range s.Networks {
 					if n.NetworkID == networkId {
@@ -150,8 +152,8 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			Delay:        30 * time.Second,
 			PollInterval: 30 * time.Second,
 		}
-		var waitError error
-		refreshResult, waitError = stateChangeConf.WaitForStateContext(ctx)
+
+		_, waitError := stateChangeConf.WaitForStateContext(ctx)
 		if waitError != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity: diag.Warning,
@@ -161,5 +163,5 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		}
 	}
 
-	return refreshResult.(*bare_metal.Server), networkDiagnostics
+	return refreshServer, networkDiagnostics
 }
