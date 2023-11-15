@@ -86,6 +86,7 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 
 	}
 
+	var refreshServer *bare_metal.Server
 	stateChangeConf := &resource.StateChangeConf{
 		Pending: []string{"detaching"},
 		Target:  []string{"detached"},
@@ -95,6 +96,7 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 				return nil, "", err
 			}
 
+			refreshServer = s
 			status := "detached"
 			for _, n := range s.Networks {
 				for _, networkId := range networkIds {
@@ -112,7 +114,7 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		PollInterval: 30 * time.Second,
 	}
 
-	refreshResult, waitError := stateChangeConf.WaitForStateContext(ctx)
+	_, waitError := stateChangeConf.WaitForStateContext(ctx)
 	if waitError != nil {
 		networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 			Severity: diag.Warning,
@@ -120,7 +122,7 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			Detail:   waitError.Error(),
 		})
 	}
-	return refreshResult.(*bare_metal.Server), networkDiagnostics
+	return refreshServer, networkDiagnostics
 }
 
 // difference returns the elements in `a` that aren't in `b`.
