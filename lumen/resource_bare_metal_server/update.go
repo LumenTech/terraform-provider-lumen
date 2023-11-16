@@ -34,21 +34,11 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		networks := server.Networks
-		oldNetworks := make([]string, len(server.Networks))
-		for i, net := range networks {
-			oldNetworks[i] = net.NetworkID
-		}
-		newNet := data.Get("network_ids").([]interface{})
-		newNetworks := make([]string, len(newNet))
-		for i, net := range newNet {
-			newNetworks[i] = net.(string)
-		}
-
-		attachNetworks := difference(newNetworks, oldNetworks)
-		detachNetworks := difference(oldNetworks, newNetworks)
+		oldNetworks := convertNetworksToListOfNetworkIds(server.Networks)
+		newNetworks := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
 
 		var networkDiag diag.Diagnostics
+		attachNetworks := difference(newNetworks, oldNetworks)
 		if len(attachNetworks) > 0 {
 			refreshServer, attachNetworkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, serverId, attachNetworks)
 			if refreshServer != nil {
@@ -56,6 +46,8 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			}
 			networkDiag = append(networkDiag, attachNetworkDiagnostics...)
 		}
+
+		detachNetworks := difference(oldNetworks, newNetworks)
 		if len(detachNetworks) > 0 {
 			refreshServer2, detachNetworkDiagnostics := detachNetworksAndWaitForCompletion(ctx, bmClient, serverId, detachNetworks)
 			if refreshServer2 != nil {
