@@ -3,6 +3,7 @@ package resource_bare_metal_server
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -164,5 +165,11 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		}
 	}
 
+	networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+		Severity:      diag.Warning,
+		Summary:       fmt.Sprintf("Server Configuration Updates Required"),
+		Detail:        "You will need to make changes on your server for networking changes to take effect",
+		AttributePath: cty.GetAttrPath("network_ids"),
+	})
 	return refreshServer, networkDiagnostics
 }
