@@ -14,14 +14,13 @@ import (
 var updateTimeout = schema.DefaultTimeout(5 * time.Minute)
 
 func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	// Currently update can be used for changing the server name and attached networks
+	serverId := data.Id()
+	bmClient := i.(*client.Clients).BareMetal
 	if data.HasChange("name") {
-		serverId := data.Id()
 		updateRequest := bare_metal.ServerUpdateRequest{
 			Name: data.Get("name").(string),
 		}
 
-		bmClient := i.(*client.Clients).BareMetal
 		server, err := bmClient.UpdateServer(serverId, updateRequest)
 		if err != nil {
 			return diag.FromErr(err)
@@ -31,8 +30,6 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	}
 
 	if data.HasChange("network_ids") {
-		serverId := data.Id()
-		bmClient := i.(*client.Clients).BareMetal
 		server, err := bmClient.GetServer(serverId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -83,7 +80,6 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", networkId, e),
 			})
 		}
-
 	}
 
 	var refreshServer *bare_metal.Server
