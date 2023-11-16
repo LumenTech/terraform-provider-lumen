@@ -114,6 +114,7 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 
 func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
+	var addedNetworkIds []string
 	for _, networkId := range networkIds {
 		_, e := bmClient.AttachNetwork(serverId, networkId)
 		if e != nil {
@@ -123,10 +124,11 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 				Detail:   fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, e),
 			})
 		}
+		addedNetworkIds = append(addedNetworkIds, networkId)
 	}
 
 	var refreshServer *bare_metal.Server
-	for _, networkId := range networkIds {
+	for _, networkId := range addedNetworkIds {
 		stateChangeConf := &resource.StateChangeConf{
 			Pending: []string{"provisioning"},
 			Target:  []string{"provisioned"},
