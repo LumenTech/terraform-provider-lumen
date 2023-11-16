@@ -46,15 +46,11 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	if errorDiagnostics != nil {
 		return errorDiagnostics
 	}
-	serv := *server
-	data.SetId(serv.ID)
-	populateServerSchema(data, serv)
+	data.SetId(server.ID)
+	populateServerSchema(data, *server)
 
 	if len(networkIds) > 1 {
-		nIds := make([]string, len(networkIds)-1)
-		for i := 0; i < len(nIds); i++ {
-			nIds[i] = networkIds[i+1].(string)
-		}
+		nIds := convertListOfInterfaceToListOfString(networkIds[1:])
 		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, nIds)
 		if refreshServer != nil {
 			populateServerSchema(data, *refreshServer)
@@ -120,12 +116,14 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		_, e := bmClient.AttachNetwork(serverId, networkId)
 		if e != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  fmt.Sprintf("Error attaching network %s", networkId),
-				Detail:   fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, e),
+				Severity:      diag.Warning,
+				Summary:       fmt.Sprintf("Error attaching network %s", networkId),
+				Detail:        fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, e),
+				AttributePath: cty.GetAttrPath("network_ids"),
 			})
+		} else {
+			addedNetworkIds = append(addedNetworkIds, networkId)
 		}
-		addedNetworkIds = append(addedNetworkIds, networkId)
 	}
 
 	var refreshServer *bare_metal.Server
