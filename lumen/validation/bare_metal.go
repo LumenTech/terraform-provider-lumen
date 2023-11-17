@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -106,5 +107,26 @@ func ValidateBareMetalPassword(password string) error {
 		}
 	}
 
+	return nil
+}
+
+func ValidateBareMetalNetworkIds(networkIds []string) error {
+	var duplicates []string
+	for i := 0; i < len(networkIds); i++ {
+		current := strings.TrimSpace(networkIds[i])
+		for j := i + 1; j < len(networkIds); j++ {
+			next := strings.TrimSpace(networkIds[j])
+			if current == next {
+				duplicates = append(duplicates, current)
+			}
+		}
+	}
+
+	if len(duplicates) != 0 {
+		return fmt.Errorf(
+			"found duplicate network ids (%v) being requested mounting the same network multiple times is currently not supported",
+			duplicates,
+		)
+	}
 	return nil
 }

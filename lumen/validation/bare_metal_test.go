@@ -103,3 +103,41 @@ func TestValidateBareMetalPassword_InvalidInput(t *testing.T) {
 		assert.NotNil(t, err)
 	}
 }
+
+func TestValidateBareMetalNetworkIds(t *testing.T) {
+	duplicates := [][]string{
+		{
+			"65526f83861724132e81b951",
+			"65526f83861724132e81b951",
+		},
+		{
+			"65526f83861724132e81b951",
+			" 65526f83861724132e81b951 ",
+		},
+	}
+
+	for _, dup := range duplicates {
+		err := ValidateBareMetalNetworkIds(dup)
+		assert.NotNil(t, err)
+	}
+
+	nonDuplicates := [][]string{
+		{
+			"65526f83861724132e81b951",
+		},
+		{
+			"65526f83861724132e81b951",
+			"65526f83861724132e81b952",
+		},
+		{
+			"65526f83861724132e81b951",
+			"65526f83861724132e81b952",
+			"65526f83861724132e81b953",
+		},
+	}
+
+	for _, non := range nonDuplicates {
+		err := ValidateBareMetalNetworkIds(non)
+		assert.Nil(t, err)
+	}
+}
