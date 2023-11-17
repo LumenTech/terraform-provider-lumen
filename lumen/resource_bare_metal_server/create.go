@@ -10,6 +10,7 @@ import (
 	"strings"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
+	"terraform-provider-lumen/lumen/validation"
 	"time"
 )
 
@@ -30,9 +31,12 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		},
 	}
 
-	networkIds := data.Get("network_ids").([]interface{})
+	networkIds := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
 	if len(networkIds) != 0 {
-		provisionRequest.NetworkID = networkIds[0].(string)
+		if err := validation.ValidateBareMetalNetworkIds(networkIds); err != nil {
+			return diag.FromErr(err)
+		}
+		provisionRequest.NetworkID = networkIds[0]
 	} else {
 		provisionRequest.NetworkRequest = &bare_metal.NetworkProvisionRequest{
 			Name:          data.Get("network_name").(string),
@@ -50,8 +54,7 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	populateServerSchema(data, *server)
 
 	if len(networkIds) > 1 {
-		nIds := convertListOfInterfaceToListOfString(networkIds[1:])
-		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, nIds)
+		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, networkIds[1:])
 		if refreshServer != nil {
 			populateServerSchema(data, *refreshServer)
 		}
