@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
+	"terraform-provider-lumen/lumen/validation"
 	"time"
 )
 
@@ -30,12 +31,16 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	}
 
 	if data.HasChange("network_ids") {
+		newNetworks := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
+		if validationError := validation.ValidateBareMetalNetworkIds(newNetworks); validationError != nil {
+			return diag.FromErr(validationError)
+		}
+
 		server, err := bmClient.GetServer(serverId)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		oldNetworks := convertNetworksToListOfNetworkIds(server.Networks)
-		newNetworks := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
 
 		var networkDiag diag.Diagnostics
 		attachNetworks := difference(newNetworks, oldNetworks)
