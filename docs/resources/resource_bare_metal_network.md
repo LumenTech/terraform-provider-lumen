@@ -24,7 +24,7 @@ output "network" {
 ## Schema
 
 ### Required
-- name (String) "Network name"
+- name (String) "Network name (updatable)"
 - location_id (String) "A location id (can be retrieved with data_source_bare_metal_locations)"
 - network_size_id (String) "A network size id (can be retrieved with data_source_bare_metal_networkSizes)"
 

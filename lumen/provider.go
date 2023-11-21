@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/resource_bare_metal_server"
 )
 
 // Provider -
@@ -28,14 +30,14 @@ func Provider() *schema.Provider {
 			},
 			"account_number": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Sensitive:   true,
 				Description: "Lumen customer account number (required for new versions of bare metal resources/data sources)",
 				DefaultFunc: schema.EnvDefaultFunc("LUMEN_ACCOUNT_NUMBER", nil),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"lumen_bare_metal_server":  ResourceBareMetalServer(),
+			"lumen_bare_metal_server":  resource_bare_metal_server.Resource(),
 			"lumen_bare_metal_network": ResourceBareMetalNetwork(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -63,7 +65,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	accountNumber := d.Get("account_number").(string)
 
 	// Populating clients config
-	config := Config{
+	config := client.Config{
 		ApigeeBaseURL: apigeeBaseURL,
 		Username:      username,
 		Password:      password,

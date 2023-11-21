@@ -11,7 +11,7 @@ Current: 1.0.0
 ## Clone Repo
 Clone terraform-provider-lumen from github:
 ```shell
-git clone https://github.com/CenturyLink/terraform-provider-lumen.git
+git clone https://github.com/LumenTech/terraform-provider-lumen.git
 ```
 
 ## Install Terraform Provider
