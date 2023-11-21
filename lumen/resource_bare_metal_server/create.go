@@ -167,9 +167,10 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 	}
 
 	networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
-		Severity:      diag.Warning,
-		Summary:       fmt.Sprintf("Server Configuration Updates Required"),
-		Detail:        "You will need to make changes on your server for networking changes to take effect",
+		Severity: diag.Warning,
+		Summary:  "Server Configuration Updates Required",
+		Detail: `Automation configures Lumen networking infrastructure only, but not server configuration.
+Adding a network to an existing server will require you to make configuration changes on your server.`,
 		AttributePath: cty.GetAttrPath("network_ids"),
 	})
 	return refreshServer, networkDiagnostics

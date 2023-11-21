@@ -3,6 +3,7 @@ package resource_bare_metal_server
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -115,6 +116,13 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			Detail:   waitError.Error(),
 		})
 	}
+	networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  "Server Configuration Updates Required",
+		Detail: `Automation configures Lumen networking infrastructure only, but not server configuration.
+Removing a network from an existing server will require you to make configuration changes on your server.`,
+		AttributePath: cty.GetAttrPath("network_ids"),
+	})
 	return refreshServer, networkDiagnostics
 }
 
