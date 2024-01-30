@@ -23,14 +23,16 @@ func populateServerSchema(d *schema.ResourceData, server bare_metal.Server) {
 	networkIds := make([]string, len(server.Networks))
 	for i, network := range server.Networks {
 		networks[i] = map[string]interface{}{
-			"id":             network.ID,
-			"network_id":     network.NetworkID,
-			"network_name":   network.NetworkName,
-			"network_type":   network.NetworkType,
-			"status":         network.Status,
-			"status_message": network.StatusMessage,
-			"ip":             network.IP,
-			"vlan":           network.VLAN,
+			"id":                  network.ID,
+			"network_id":          network.NetworkID,
+			"network_name":        network.NetworkName,
+			"network_type":        network.NetworkType,
+			"status":              network.Status,
+			"status_message":      network.StatusMessage,
+			"ip":                  network.IP,
+			"ipv6":                network.IPV6,
+			"vlan":                network.VLAN,
+			"assign_ipv6_address": network.AssignIPV6Address,
 		}
 		networkIds[i] = network.NetworkID
 	}

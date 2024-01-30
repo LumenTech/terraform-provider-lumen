@@ -87,6 +87,12 @@ If providing multiple values it will require you to make server configuration ch
 					"network_name",
 				},
 			},
+			"network_type": {
+				Description: "The type of network being provisioned for this server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "INTERNET",
+			},
 			"username": {
 				Type:      schema.TypeString,
 				Required:  true,
@@ -120,6 +126,15 @@ If providing multiple values it will require you to make server configuration ch
 				AtLeastOneOf: []string{
 					"password",
 					"ssh_public_key",
+				},
+			},
+			"assign_ipv6_addresses": {
+				Description: `List of true/false to determine whether or not to assign an IPV6 address for each network. 
+If only one value is provided, it will be applied to all networks.`,
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeBool,
 				},
 			},
 			"id": {
@@ -195,8 +210,16 @@ If providing multiple values it will require you to make server configuration ch
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"ipv6": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"vlan": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"assign_ipv6_address": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},

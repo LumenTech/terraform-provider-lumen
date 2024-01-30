@@ -10,6 +10,14 @@ func convertListOfInterfaceToListOfString(items []interface{}) []string {
 	return networkIds
 }
 
+func convertListOfInterfaceToListOfBool(items []interface{}) []bool {
+	booleans := make([]bool, len(items))
+	for idx, item := range items {
+		booleans[idx] = item.(bool)
+	}
+	return booleans
+}
+
 func convertNetworksToListOfNetworkIds(networks []bare_metal.ServerNetwork) []string {
 	networkIds := make([]string, len(networks))
 	for idx, n := range networks {

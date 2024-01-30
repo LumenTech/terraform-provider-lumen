@@ -29,9 +29,11 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			Password:  data.Get("password").(string),
 			PublicKey: data.Get("ssh_public_key").(string),
 		},
+		//AssignIPV6Address: data.Get("assign_ipv6_address").(bool),
 	}
 
 	networkIds := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
+	//assignIpv6Addresses := convertListOfInterfaceToListOfBool(data.Get("assign_ipv6_addresses").([]interface{}))
 	if len(networkIds) != 0 {
 		if err := validation.ValidateBareMetalNetworkIds(networkIds); err != nil {
 			return diag.FromErr(err)
@@ -42,7 +44,7 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			Name:          data.Get("network_name").(string),
 			LocationID:    provisionRequest.LocationID,
 			NetworkSizeID: data.Get("network_size_id").(string),
-			NetworkType:   "INTERNET",
+			NetworkType:   data.Get("network_type").(string),
 		}
 	}
 
@@ -116,7 +118,11 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 	var networkDiagnostics diag.Diagnostics
 	var addedNetworkIds []string
 	for _, networkId := range networkIds {
-		_, e := bmClient.AttachNetwork(serverId, networkId)
+		addNetworkRequest := bare_metal.AddNetworkRequest{
+			NetworkId: networkId,
+			//AssignIPV6Address: data.Get("assign_ipv6_address").(bool),
+		}
+		_, e := bmClient.AttachNetwork(serverId, addNetworkRequest)
 		if e != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity:      diag.Warning,

@@ -139,12 +139,8 @@ func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.Serv
 	return resp.Result().(*bare_metal.Server), nil
 }
 
-func (bm *BareMetalClient) AttachNetwork(serverId, networkId string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) AttachNetwork(serverId string, request bare_metal.AddNetworkRequest) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
-	request := map[string]string{
-		"networkId": networkId,
-	}
-
 	resp, err := bm.execute("POST", url, request, bare_metal.Server{})
 	if err != nil {
 		return nil, err
