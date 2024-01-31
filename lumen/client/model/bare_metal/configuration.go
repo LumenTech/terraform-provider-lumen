@@ -10,6 +10,7 @@ type Configuration struct {
 	Processors   int    `json:"processors"`
 	MachineCount int    `json:"machineCount"`
 	Price        Price  `json:"price"`
+	Tier         int    `json:"tier"`
 }
 
 func (c Configuration) ToMap() map[string]interface{} {
@@ -23,5 +24,6 @@ func (c Configuration) ToMap() map[string]interface{} {
 		"processors":    c.Processors,
 		"machine_count": c.MachineCount,
 		"price":         c.Price.String(),
+		"tier":          c.Tier,
 	}
 }
