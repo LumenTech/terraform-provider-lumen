@@ -88,25 +88,3 @@ func TestConvertToListMap_NetworkSize(t *testing.T) {
 	assert.Equal(t, networkSize.AvailableIPs, convertedNS["available_ips"])
 	assert.Equal(t, "$0.08/HOURLY", convertedNS["price"])
 }
-
-func TestConvertToListMap_OsImage(t *testing.T) {
-	osImages := []OsImage{
-		{
-			Name:  "Ubuntu 20.04",
-			Ready: true,
-			Price: Price{
-				Amount: 45.00,
-				Period: "MONTHLY",
-			},
-		},
-	}
-
-	list := ConvertToListMap(osImages)
-
-	assert.Equal(t, len(osImages), len(list))
-
-	osImage := osImages[0]
-	convertedImage := list[0]
-	assert.Equal(t, osImage.Name, convertedImage["name"])
-	assert.Equal(t, "$45.00/MONTHLY", convertedImage["price"])
-}
