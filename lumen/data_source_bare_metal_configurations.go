@@ -80,6 +80,11 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
+						"tier": {
+							Description: "Tier tier of this configuration used for os pricing",
+							Type:        schema.TypeInt,
+							Computed:    true,
+						},
 					},
 				},
 			},
