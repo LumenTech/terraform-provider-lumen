@@ -2,6 +2,11 @@ package bare_metal
 
 import "fmt"
 
+type TierPrice struct {
+	Price
+	Tier *int `json:"tier"`
+}
+
 type Price struct {
 	Amount float32 `json:"amount"`
 	Period string  `json:"period"`
