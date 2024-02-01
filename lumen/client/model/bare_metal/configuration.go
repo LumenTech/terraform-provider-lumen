@@ -1,5 +1,7 @@
 package bare_metal
 
+import "fmt"
+
 type Configuration struct {
 	Name         string `json:"name"`
 	Cores        int    `json:"cores"`
@@ -10,10 +12,15 @@ type Configuration struct {
 	Processors   int    `json:"processors"`
 	MachineCount int    `json:"machineCount"`
 	Price        Price  `json:"price"`
-	Tier         int    `json:"tier"`
+	Tier         *int   `json:"tier"`
 }
 
 func (c Configuration) ToMap() map[string]interface{} {
+	tier := "None Set"
+	if c.Tier != nil {
+		tier = fmt.Sprintf("%d", *c.Tier)
+	}
+
 	return map[string]interface{}{
 		"name":          c.Name,
 		"cores":         c.Cores,
@@ -24,6 +31,6 @@ func (c Configuration) ToMap() map[string]interface{} {
 		"processors":    c.Processors,
 		"machine_count": c.MachineCount,
 		"price":         c.Price.String(),
-		"tier":          c.Tier,
+		"tier":          tier,
 	}
 }
