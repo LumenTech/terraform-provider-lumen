@@ -67,13 +67,18 @@ output "server2" {
 - username (String) "Username that should be created on the server"
 
 ### Conditionally Required
-#### network_ids or (network_name, network_size_id)
+#### attach_networks or (network_name, network_size_id)
 - network_name (String) "The name of the network you wish to create with the server"
 - network_size_id (String) "The network size id you wish to create with the server (can be retrieved with data_source_bare_metal_network_sizes)"
-- network_ids (List of String) "A list of network IDs if you are attaching existing networks (updatable)"
+- attach_networks (List of Object) "List of existing networks to attach to the server being provisioned. (updatable)"
 #### at least one (password and ssh_public_key)
 - password (String) "The password you wish to have associated with the user account"
 - ssh_public_key (String) "The ssh public key you wish to have associated with the username"
+
+### Optional
+- network_type (String) "The type of network being used. Two possible values: INTERNET and DUAL_STACK_INTERNET"
+- assign_ipv6_address (Boolean) "A boolean (true/false) value indicating whether to assign an IPv6 address
+  for this server if using a dual stack network. Defaults to false if not set."
 
 ### Computed
 - id (String)

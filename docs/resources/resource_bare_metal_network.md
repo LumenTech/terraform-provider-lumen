@@ -28,12 +28,16 @@ output "network" {
 - location_id (String) "A location id (can be retrieved with data_source_bare_metal_locations)"
 - network_size_id (String) "A network size id (can be retrieved with data_source_bare_metal_networkSizes)"
 
+### Optional
+- network_type (String) "The type of network being used. Two possible values: INTERNET and DUAL_STACK_INTERNET"
+
 ### Computed
 - id (String)
 - account_id (String)
 - service_id (String)
 - location (String)
 - ip_block (String)
+- ipv6_block (String)
 - gateway (String)
 - available_ips (Integer)
 - total_ips (Integer)

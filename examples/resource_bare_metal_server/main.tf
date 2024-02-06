@@ -32,7 +32,7 @@ resource "lumen_bare_metal_server" "server2" {
   configuration_name = "small_plus"
   os_image_name = "Ubuntu 20.04"
   attach_networks {
-    network_id = "65526f96861724132e81b952"
+    network_id = "65c283e988f85707cc53b308"
     assign_ipv6_address = true
   }
   attach_networks {
