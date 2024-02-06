@@ -20,29 +20,31 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	bmClient := i.(*client.Clients).BareMetal
 
 	provisionRequest := bare_metal.ServerProvisionRequest{
-		Name:          data.Get("name").(string),
 		LocationID:    data.Get("location_id").(string),
 		Configuration: data.Get("configuration_name").(string),
 		OSImage:       data.Get("os_image_name").(string),
+		Name:          data.Get("name").(string),
 		Credentials: bare_metal.Credentials{
 			Username:  data.Get("username").(string),
 			Password:  data.Get("password").(string),
 			PublicKey: data.Get("ssh_public_key").(string),
 		},
+		AssignIPV6Address: data.Get("assign_ipv6_address").(bool),
 	}
 
-	networkIds := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
-	if len(networkIds) != 0 {
-		if err := validation.ValidateBareMetalNetworkIds(networkIds); err != nil {
+	attachNetworks := convertDataToAttachedNetworks(data.Get("attach_networks").([]interface{}))
+	if len(attachNetworks) != 0 {
+		if err := validation.ValidateBareMetalNetworkIds(attachNetworks); err != nil {
 			return diag.FromErr(err)
 		}
-		provisionRequest.NetworkID = networkIds[0]
+		provisionRequest.NetworkID = attachNetworks[0].NetworkID
+		provisionRequest.AssignIPV6Address = attachNetworks[0].AssignIPV6
 	} else {
 		provisionRequest.NetworkRequest = &bare_metal.NetworkProvisionRequest{
 			Name:          data.Get("network_name").(string),
 			LocationID:    provisionRequest.LocationID,
 			NetworkSizeID: data.Get("network_size_id").(string),
-			NetworkType:   "INTERNET",
+			NetworkType:   data.Get("network_type").(string),
 		}
 	}
 
@@ -53,8 +55,8 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	data.SetId(server.ID)
 	populateServerSchema(data, *server)
 
-	if len(networkIds) > 1 {
-		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, networkIds[1:])
+	if len(attachNetworks) > 1 {
+		refreshServer, networkDiagnostics := attachNetworksAndWaitForCompletion(ctx, bmClient, server.ID, attachNetworks[1:])
 		if refreshServer != nil {
 			populateServerSchema(data, *refreshServer)
 		}
@@ -112,20 +114,24 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 	return &serv, nil
 }
 
-func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
+func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networks []bare_metal.AttachNetwork) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
 	var addedNetworkIds []string
-	for _, networkId := range networkIds {
-		_, e := bmClient.AttachNetwork(serverId, networkId)
+	for _, network := range networks {
+		addNetworkRequest := bare_metal.AddNetworkRequest{
+			NetworkId:         network.NetworkID,
+			AssignIPV6Address: network.AssignIPV6,
+		}
+		_, e := bmClient.AttachNetwork(serverId, addNetworkRequest)
 		if e != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity:      diag.Warning,
-				Summary:       fmt.Sprintf("Error attaching network %s", networkId),
-				Detail:        fmt.Sprintf("Network %s errored on attachment reason - %s", networkId, e),
+				Summary:       fmt.Sprintf("Error attaching network %s", network.NetworkID),
+				Detail:        fmt.Sprintf("Network %s errored on attachment reason - %s", network.NetworkID, e),
 				AttributePath: cty.GetAttrPath("network_ids"),
 			})
 		} else {
-			addedNetworkIds = append(addedNetworkIds, networkId)
+			addedNetworkIds = append(addedNetworkIds, network.NetworkID)
 		}
 	}
 

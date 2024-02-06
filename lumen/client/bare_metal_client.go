@@ -28,7 +28,7 @@ type BareMetalClient struct {
 
 func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v1.0.0")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.0.0")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
@@ -139,12 +139,8 @@ func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.Serv
 	return resp.Result().(*bare_metal.Server), nil
 }
 
-func (bm *BareMetalClient) AttachNetwork(serverId, networkId string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) AttachNetwork(serverId string, request bare_metal.AddNetworkRequest) (*bare_metal.Server, error) {
 	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
-	request := map[string]string{
-		"networkId": networkId,
-	}
-
 	resp, err := bm.execute("POST", url, request, bare_metal.Server{})
 	if err != nil {
 		return nil, err

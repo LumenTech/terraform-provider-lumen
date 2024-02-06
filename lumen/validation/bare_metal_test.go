@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"strings"
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"testing"
 )
 
@@ -105,14 +106,26 @@ func TestValidateBareMetalPassword_InvalidInput(t *testing.T) {
 }
 
 func TestValidateBareMetalNetworkIds(t *testing.T) {
-	duplicates := [][]string{
+	duplicates := [][]bare_metal.AttachNetwork{
 		{
-			"65526f83861724132e81b951",
-			"65526f83861724132e81b951",
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
 		},
 		{
-			"65526f83861724132e81b951",
-			" 65526f83861724132e81b951 ",
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
+			{
+				NetworkID:  " 65526f83861724132e81b951 ",
+				AssignIPV6: false,
+			},
 		},
 	}
 
@@ -121,18 +134,36 @@ func TestValidateBareMetalNetworkIds(t *testing.T) {
 		assert.NotNil(t, err)
 	}
 
-	nonDuplicates := [][]string{
+	nonDuplicates := [][]bare_metal.AttachNetwork{
 		{
-			"65526f83861724132e81b951",
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
 		},
 		{
-			"65526f83861724132e81b951",
-			"65526f83861724132e81b952",
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
+			{
+				NetworkID:  "65526f83861724132e81b952",
+				AssignIPV6: false,
+			},
 		},
 		{
-			"65526f83861724132e81b951",
-			"65526f83861724132e81b952",
-			"65526f83861724132e81b953",
+			{
+				NetworkID:  "65526f83861724132e81b951",
+				AssignIPV6: false,
+			},
+			{
+				NetworkID:  "65526f83861724132e81b952",
+				AssignIPV6: false,
+			},
+			{
+				NetworkID:  "65526f83861724132e81b953",
+				AssignIPV6: false,
+			},
 		},
 	}
 
