@@ -32,7 +32,7 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	}
 
 	if data.HasChange("attach_networks") {
-		newNetworks := convertDataToAttachedNetworks(data.Get("attachNetworks").([]interface{}))
+		newNetworks := convertDataToAttachedNetworks(data.Get("attach_networks").([]interface{}))
 		if validationError := validation.ValidateBareMetalNetworkIds(newNetworks); validationError != nil {
 			return diag.FromErr(validationError)
 		}
