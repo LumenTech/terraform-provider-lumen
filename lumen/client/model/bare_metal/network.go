@@ -8,6 +8,7 @@ type Network struct {
 	Location     string           `json:"location"`
 	LocationID   string           `json:"locationId"`
 	IPBlock      string           `json:"ipBlock"`
+	IPV6Block    string           `json:"ipv6Block"`
 	Gateway      string           `json:"gateway"`
 	AvailableIPs int              `json:"availableIps"`
 	TotalIPs     int              `json:"totalIPs"`
@@ -23,6 +24,11 @@ type NetworkProvisionRequest struct {
 	LocationID    string `json:"locationId"`
 	NetworkSizeID string `json:"networkSizeId"`
 	NetworkType   string `json:"networkType"`
+}
+
+type AddNetworkRequest struct {
+	NetworkId         string `json:"networkId"`
+	AssignIPV6Address bool   `json:"assignIpv6Address,omitempty"`
 }
 
 type NetworkUpdateRequest struct {

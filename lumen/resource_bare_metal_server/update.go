@@ -31,8 +31,8 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		populateServerSchema(data, *server)
 	}
 
-	if data.HasChange("network_ids") {
-		newNetworks := convertListOfInterfaceToListOfString(data.Get("network_ids").([]interface{}))
+	if data.HasChange("attach_networks") {
+		newNetworks := convertDataToAttachedNetworks(data.Get("attach_networks").([]interface{}))
 		if validationError := validation.ValidateBareMetalNetworkIds(newNetworks); validationError != nil {
 			return diag.FromErr(validationError)
 		}
@@ -41,7 +41,7 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		oldNetworks := convertNetworksToListOfNetworkIds(server.Networks)
+		oldNetworks := convertNetworksToListOfAttachNetworks(server.Networks)
 
 		var networkDiag diag.Diagnostics
 		attachNetworks := difference(newNetworks, oldNetworks)
@@ -67,15 +67,15 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 	return nil
 }
 
-func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networkIds []string) (*bare_metal.Server, diag.Diagnostics) {
+func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networks []bare_metal.AttachNetwork) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
-	for _, networkId := range networkIds {
-		_, e := bmClient.RemoveNetwork(serverId, networkId)
+	for _, network := range networks {
+		_, e := bmClient.RemoveNetwork(serverId, network.NetworkID)
 		if e != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity: diag.Warning,
-				Summary:  fmt.Sprintf("Error detaching network %s", networkId),
-				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", networkId, e),
+				Summary:  fmt.Sprintf("Error detaching network %s", network.NetworkID),
+				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", network.NetworkID, e),
 			})
 		}
 	}
@@ -93,8 +93,8 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			refreshServer = s
 			status := "detached"
 			for _, n := range s.Networks {
-				for _, networkId := range networkIds {
-					if n.NetworkID == networkId {
+				for _, network := range networks {
+					if n.NetworkID == network.NetworkID {
 						status = "detaching"
 						break
 					}
@@ -127,14 +127,14 @@ Removing a network from an existing server will require you to make configuratio
 }
 
 // difference returns the elements in `a` that aren't in `b`.
-func difference(a, b []string) []string {
+func difference(a []bare_metal.AttachNetwork, b []bare_metal.AttachNetwork) []bare_metal.AttachNetwork {
 	mb := make(map[string]struct{}, len(b))
 	for _, x := range b {
-		mb[x] = struct{}{}
+		mb[x.NetworkID] = struct{}{}
 	}
-	var diff []string
+	var diff []bare_metal.AttachNetwork
 	for _, x := range a {
-		if _, found := mb[x]; !found {
+		if _, found := mb[x.NetworkID]; !found {
 			diff = append(diff, x)
 		}
 	}

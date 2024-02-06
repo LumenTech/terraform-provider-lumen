@@ -50,12 +50,13 @@ func TestServerProvisionRequest_NetworkIdAndPasswordOmitEmpty(t *testing.T) {
 			Name:          "test-net",
 			LocationID:    "location",
 			NetworkSizeID: "some-uuid",
-			NetworkType:   "INTERNET",
+			NetworkType:   "DUAL_STACK_INTERNET",
 		},
 		Credentials: Credentials{
 			Username:  "test-user",
 			PublicKey: "public-key",
 		},
+		AssignIPV6Address: true,
 	}
 
 	data, err := json.Marshal(request)
@@ -73,12 +74,13 @@ func TestServerProvisionRequest_NetworkIdAndPasswordOmitEmpty(t *testing.T) {
 		"name": "test-net", 
 		"locationId": "location", 
 		"networkSizeId":"some-uuid",
-		"networkType": "INTERNET"
+		"networkType": "DUAL_STACK_INTERNET"
 	},
 	"credentials":{
 		"username":"test-user",
 		"publicKey":"public-key"
-	}
+	},
+	"assignIpv6Address":true
 }
 `, jsonString)
 }

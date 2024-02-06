@@ -27,6 +27,7 @@ output "network_sizes" {
 - id (String) "The id of a network size"
 - name (String) "The name of this network size"
 - cidr (String) "The CIDR for this network size"
+- network_type (String) "The type of network being used"
 - available_ips (Integer) "The number of available IPs for this network size"
 - price (String) "The price for this network size"
 

@@ -2,18 +2,27 @@ package resource_bare_metal_server
 
 import "terraform-provider-lumen/lumen/client/model/bare_metal"
 
-func convertListOfInterfaceToListOfString(items []interface{}) []string {
-	networkIds := make([]string, len(items))
-	for idx, item := range items {
-		networkIds[idx] = item.(string)
+func convertDataToAttachedNetworks(items []interface{}) []bare_metal.AttachNetwork {
+	networks := make([]bare_metal.AttachNetwork, len(items))
+	for i, item := range items {
+		net := item.(map[string]interface{})
+		networkID := net["network_id"].(string)
+		assignIPV6 := net["assign_ipv6_address"].(bool)
+		networks[i] = bare_metal.AttachNetwork{
+			NetworkID:  networkID,
+			AssignIPV6: assignIPV6,
+		}
 	}
-	return networkIds
+	return networks
 }
 
-func convertNetworksToListOfNetworkIds(networks []bare_metal.ServerNetwork) []string {
-	networkIds := make([]string, len(networks))
+func convertNetworksToListOfAttachNetworks(networks []bare_metal.ServerNetwork) []bare_metal.AttachNetwork {
+	attachNetworks := make([]bare_metal.AttachNetwork, len(networks))
 	for idx, n := range networks {
-		networkIds[idx] = n.NetworkID
+		attachNetworks[idx] = bare_metal.AttachNetwork{
+			NetworkID:  n.NetworkID,
+			AssignIPV6: n.AssignIPV6Address,
+		}
 	}
-	return networkIds
+	return attachNetworks
 }

@@ -46,7 +46,7 @@ func Resource() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"network_ids": {
+			"attach_networks": {
 				Description: `List of existing networks to attach to the server being provisioned.  
 If providing multiple values it will require you to make server configuration changes for change to take effect.`,
 				Type:     schema.TypeList,
@@ -58,8 +58,20 @@ If providing multiple values it will require you to make server configuration ch
 				ExactlyOneOf: []string{
 					"network_name",
 				},
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"network_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"assign_ipv6_address": {
+							Description: `A boolean (true/false) value indicating whether or not to assign an IPv6 address 
+for this server if using a dual stack network. Defaults to false if not set.`,
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
 				},
 			},
 			"network_name": {
@@ -67,13 +79,13 @@ If providing multiple values it will require you to make server configuration ch
 				Type:        schema.TypeString,
 				Optional:    true,
 				ConflictsWith: []string{
-					"network_ids",
+					"attach_networks",
 				},
 				RequiredWith: []string{
 					"network_size_id",
 				},
 				ExactlyOneOf: []string{
-					"network_ids",
+					"attach_networks",
 				},
 			},
 			"network_size_id": {
@@ -81,11 +93,17 @@ If providing multiple values it will require you to make server configuration ch
 				Type:        schema.TypeString,
 				Optional:    true,
 				ConflictsWith: []string{
-					"network_ids",
+					"attach_networks",
 				},
 				RequiredWith: []string{
 					"network_name",
 				},
+			},
+			"network_type": {
+				Description: "The type of network being provisioned for this server.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "INTERNET",
 			},
 			"username": {
 				Type:      schema.TypeString,
@@ -121,6 +139,13 @@ If providing multiple values it will require you to make server configuration ch
 					"password",
 					"ssh_public_key",
 				},
+			},
+			"assign_ipv6_address": {
+				Description: `A boolean (true/false) value indicating whether or not to assign an IPv6 address 
+for this server if using a dual stack network. Defaults to false if not set.`,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"id": {
 				Type:     schema.TypeString,
@@ -195,8 +220,16 @@ If providing multiple values it will require you to make server configuration ch
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"ipv6": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"vlan": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"assign_ipv6_address": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},

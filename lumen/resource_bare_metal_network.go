@@ -33,7 +33,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				Name:          data.Get("name").(string),
 				LocationID:    data.Get("location_id").(string),
 				NetworkSizeID: data.Get("network_size_id").(string),
-				NetworkType:   "INTERNET",
+				NetworkType:   data.Get("network_type").(string),
 			}
 
 			network, err := client.ProvisionNetwork(provisionRequest)
@@ -173,6 +173,12 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"network_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "INTERNET",
+				ForceNew: true,
+			},
 			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -190,6 +196,10 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				Computed: true,
 			},
 			"ip_block": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"ipv6_block": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -248,6 +258,7 @@ func populateNetworkSchema(d *schema.ResourceData, network bare_metal.Network) {
 	d.Set("location", network.Location)
 	d.Set("location_id", network.LocationID)
 	d.Set("ip_block", network.IPBlock)
+	d.Set("ipv6_block", network.IPV6Block)
 	d.Set("gateway", network.Gateway)
 	d.Set("available_ips", network.AvailableIPs)
 	d.Set("total_ips", network.TotalIPs)

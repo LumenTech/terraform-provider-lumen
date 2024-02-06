@@ -32,14 +32,16 @@ type ServerConfiguration struct {
 }
 
 type ServerNetwork struct {
-	ID            string `json:"id"`
-	NetworkID     string `json:"networkId"`
-	NetworkName   string `json:"networkName"`
-	NetworkType   string `json:"networkType"`
-	Status        string `json:"status"`
-	StatusMessage string `json:"statusMessage"`
-	IP            string `json:"ip"`
-	VLAN          string `json:"vlan"`
+	ID                string `json:"id"`
+	NetworkID         string `json:"networkId"`
+	NetworkName       string `json:"networkName"`
+	NetworkType       string `json:"networkType"`
+	Status            string `json:"status"`
+	StatusMessage     string `json:"statusMessage"`
+	IP                string `json:"ip"`
+	IPV6              string `json:"ipv6"`
+	VLAN              string `json:"vlan"`
+	AssignIPV6Address bool   `json:"assignIpv6Address"`
 }
 
 type ComponentPrice struct {
@@ -48,13 +50,14 @@ type ComponentPrice struct {
 }
 
 type ServerProvisionRequest struct {
-	Name           string                   `json:"name"`
-	LocationID     string                   `json:"locationId"`
-	Configuration  string                   `json:"configuration"`
-	OSImage        string                   `json:"osImage"`
-	NetworkID      string                   `json:"networkId,omitempty"`
-	NetworkRequest *NetworkProvisionRequest `json:"networkRequest,omitempty"`
-	Credentials    Credentials              `json:"credentials"`
+	Name              string                   `json:"name"`
+	LocationID        string                   `json:"locationId"`
+	Configuration     string                   `json:"configuration"`
+	OSImage           string                   `json:"osImage"`
+	NetworkID         string                   `json:"networkId,omitempty"`
+	NetworkRequest    *NetworkProvisionRequest `json:"networkRequest,omitempty"`
+	Credentials       Credentials              `json:"credentials"`
+	AssignIPV6Address bool                     `json:"assignIpv6Address,omitempty"`
 }
 
 type Credentials struct {

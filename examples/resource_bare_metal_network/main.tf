@@ -2,7 +2,7 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "1.0.0"
+      version = "2.0.0"
     }
   }
 }
@@ -18,6 +18,7 @@ resource "lumen_bare_metal_network" "network" {
   name = "testNetwork5"
   location_id = "DNVTCO56LEC"
   network_size_id = "6529723924b8bf31ebd998e2"
+  network_type = "DUAL_STACK_INTERNET"
 }
 
 output "network" {
