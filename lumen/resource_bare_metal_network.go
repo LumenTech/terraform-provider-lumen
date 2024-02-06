@@ -175,6 +175,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			},
 			"network_type": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Default:  "INTERNET",
 				ForceNew: true,
 			},

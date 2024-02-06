@@ -50,7 +50,7 @@ func DataSourceBareMetalNetworkSizes() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"networkType": {
+						"network_type": {
 							Description: "The type of network being used",
 							Type:        schema.TypeString,
 							Computed:    true,

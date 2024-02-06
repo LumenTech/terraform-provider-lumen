@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"unicode"
 )
 
@@ -110,12 +111,12 @@ func ValidateBareMetalPassword(password string) error {
 	return nil
 }
 
-func ValidateBareMetalNetworkIds(networkIds []string) error {
+func ValidateBareMetalNetworkIds(networks []bare_metal.AttachNetwork) error {
 	var duplicates []string
-	for i := 0; i < len(networkIds); i++ {
-		current := strings.TrimSpace(networkIds[i])
-		for j := i + 1; j < len(networkIds); j++ {
-			next := strings.TrimSpace(networkIds[j])
+	for i := 0; i < len(networks); i++ {
+		current := strings.TrimSpace(networks[i].NetworkID)
+		for j := i + 1; j < len(networks); j++ {
+			next := strings.TrimSpace(networks[j].NetworkID)
 			if current == next {
 				duplicates = append(duplicates, current)
 			}

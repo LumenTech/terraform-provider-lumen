@@ -14,7 +14,7 @@ func (n NetworkSize) ToMap() map[string]interface{} {
 		"id":            n.ID,
 		"name":          n.Name,
 		"cidr":          n.CIDR,
-		"networkType":   n.NetworkType,
+		"network_type":  n.NetworkType,
 		"available_ips": n.AvailableIPs,
 		"price":         n.Price.String(),
 	}

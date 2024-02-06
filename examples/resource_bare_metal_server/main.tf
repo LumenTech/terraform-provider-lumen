@@ -31,11 +31,16 @@ resource "lumen_bare_metal_server" "server2" {
   location_id = "DNVTCO56LEC"
   configuration_name = "small_plus"
   os_image_name = "Ubuntu 20.04"
-  network_ids = [
-  "65526f96861724132e81b952",
-  "6553dc0d861724132e81ce42",
-  "6553dc22861724132e81ce43"
-  ]
+  attach_networks {
+    network_id = "65526f96861724132e81b952"
+    assign_ipv6_address = true
+  }
+  attach_networks {
+    network_id = "6553dc0d861724132e81ce42"
+  }
+  attach_networks {
+    network_id = "6553dc22861724132e81ce43"
+  }
   username = "admin"
   password = "**********"
 }
