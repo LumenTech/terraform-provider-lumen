@@ -25,6 +25,7 @@ output "os_images" {
 
 ### Computed
 - name (String) "The name of this OS image"
+- tier (String) "The tier associated with the OS Image that is used to match to Configuration Tier"
 - price (String) "The price for using this OS image"
 
 ## Terraform Input Variables

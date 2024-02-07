@@ -18,7 +18,7 @@ func DataSourceBareMetalOsImages() *schema.Resource {
 				return diag.FromErr(err)
 			}
 
-			if err := data.Set("os_images", bare_metal.ConvertToListMap(*osImages)); err != nil {
+			if err := data.Set("os_images", bare_metal.ConvertOSImagesToListMap(*osImages)); err != nil {
 				return diag.FromErr(err)
 			}
 			data.SetId("os_images")
@@ -37,6 +37,11 @@ func DataSourceBareMetalOsImages() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Description: "The name of this OS image",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"tier": {
+							Description: "OS image tier that is used to match to server configuration tier for pricing",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},

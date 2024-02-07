@@ -33,6 +33,7 @@ output "configurations" {
 - processors (Integer) "The number of processors in this configuration"
 - machine_count (Integer) "The number of machines in this configuration"
 - price (String) "The price for this configuration"
+- tier (String) "The tier associated with the configuration which is used for mapping to OS Image pricing"
 
 ## Terraform Input Variables
 ### Required
