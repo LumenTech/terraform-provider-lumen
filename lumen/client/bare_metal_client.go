@@ -28,7 +28,7 @@ type BareMetalClient struct {
 
 func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.1.0")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.1.1")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
