@@ -149,11 +149,8 @@ func (bm *BareMetalClient) AttachNetwork(serverId string, request bare_metal.Add
 }
 
 func (bm *BareMetalClient) RemoveNetwork(serverId, networkId string) (*bare_metal.Server, error) {
-	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
-	request := map[string]string{
-		"networkId": networkId,
-	}
-	resp, err := bm.execute("DELETE", url, request, bare_metal.Server{})
+	url := fmt.Sprintf("%s/servers/%s/networks/%s", bm.URL, serverId, networkId)
+	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
 	if err != nil {
 		if resp != nil && resp.StatusCode() == 404 {
 			return nil, nil
