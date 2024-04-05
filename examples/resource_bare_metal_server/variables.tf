@@ -1,10 +1,10 @@
-variable "username" {
-  description = "Lumen username (used for authentication)"
+variable "consumer_key" {
+  description = "Lumen consumer key (used for authentication)"
   type = string
 }
 
-variable "password" {
-  description = "Lumen password (used for authentication)"
+variable "consumer_secret" {
+  description = "Lumen consumer secret (used for authentication)"
   type = string
 }
 

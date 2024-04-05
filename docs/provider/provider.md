@@ -8,8 +8,8 @@ This document outlines details on Lumen's Terraform provider. It walks through d
 ## Schema
 
 ### Required
-- username (String) "Lumen API username for authentication"
-- password (String) "Password of Lumen API user for authentication"
+- consumer_key (String) "Lumen API consumer key for authentication"
+- consumer_secret (String) "Lumen API consumer secret of Lumen API user for authentication"
 
 ### Optional
 - account_number (String) "Account number for this Lumen account"
@@ -44,22 +44,22 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "2.1.1"
+      version = "2.2.0"
     }
   }
 }
 
 provider "lumen" {
   # Configuration options
-  username = var.username
-  password = var.password
+  consumer_key = var.consumer_key
+  consumer_secret = var.consumer_secret
   account_number = var.account_number
 }
 ```
 
 `variables.tf`
 ```hcl
-- "username" : $consumer_key
-- "password" : $consumer_secret
+- "consumer_key" : $consumer_key
+- "consumer_secret" : $consumer_secret
 - "account_number": $lumen_account_number
 ```

@@ -2,10 +2,11 @@ package lumen
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DataSourceBareMetalConfigurations() *schema.Resource {
@@ -37,6 +38,11 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Description: "The type of configuration (ie small, medium, large)",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						"display_name": {
+							Description: "The display name of the configuration",
 							Type:        schema.TypeString,
 							Computed:    true,
 						},

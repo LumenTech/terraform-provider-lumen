@@ -4,6 +4,7 @@ import "fmt"
 
 type Configuration struct {
 	Name         string `json:"name"`
+	DisplayName  string `json:"displayName"`
 	Cores        int    `json:"cores"`
 	Memory       string `json:"memory"`
 	Storage      string `json:"storage"`
@@ -23,6 +24,7 @@ func (c Configuration) ToMap() map[string]interface{} {
 
 	return map[string]interface{}{
 		"name":          c.Name,
+		"display_name":  c.DisplayName,
 		"cores":         c.Cores,
 		"memory":        c.Memory,
 		"storage":       c.Storage,

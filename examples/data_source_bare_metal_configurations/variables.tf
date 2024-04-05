@@ -1,14 +1,14 @@
-variable "username" {
-  description = "Lumen username (used for authentication)"
+variable "consumer_key" {
+  description = "Lumen consumer_key (used for authentication)"
   type = string
 }
 
-variable "password" {
-  description = "Lumen password (used for authentication)"
+variable "consumer_secret" {
+  description = "Lumen consumer_secret (used for authentication)"
   type = string
 }
 
-variable "accountNumber" {
+variable "account_number" {
   description = "Account Number that will be acted upon"
   type = string
 }

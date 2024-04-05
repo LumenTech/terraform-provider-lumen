@@ -3,10 +3,11 @@ package lumen
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/resource_bare_metal_server"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Provider -
@@ -14,19 +15,19 @@ func Provider() *schema.Provider {
 	/* User authentication schema */
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"username": {
+			"consumer_key": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Sensitive:   true,
-				Description: "Lumen username",
-				DefaultFunc: schema.EnvDefaultFunc("LUMEN_USERNAME", nil),
+				Description: "Consumer key for Lumen API",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_CONSUMER_KEY", nil),
 			},
-			"password": {
+			"consumer_secret": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Sensitive:   true,
-				Description: "Lumen password",
-				DefaultFunc: schema.EnvDefaultFunc("LUMEN_PASSWORD", nil),
+				Description: "Consumer secret for Lumen API",
+				DefaultFunc: schema.EnvDefaultFunc("LUMEN_CONSUMER_SECRET", nil),
 			},
 			"account_number": {
 				Type:        schema.TypeString,
@@ -52,24 +53,22 @@ func Provider() *schema.Provider {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	apigeeBaseURL := "https://api.lumen.com"
-	// Lumen username
-	username := d.Get("username").(string)
-	if username == "" {
-		return nil, diag.FromErr(fmt.Errorf("Lumen username"))
+	consumerKey := d.Get("consumer_key").(string)
+	if consumerKey == "" {
+		return nil, diag.FromErr(fmt.Errorf("Consumer key not found"))
 	}
-	// Lumen password
-	password := d.Get("password").(string)
-	if password == "" {
-		return nil, diag.FromErr(fmt.Errorf("Lumen password"))
+	consumerSecret := d.Get("consumer_secret").(string)
+	if consumerSecret == "" {
+		return nil, diag.FromErr(fmt.Errorf("Consumer secret not found"))
 	}
 	accountNumber := d.Get("account_number").(string)
 
 	// Populating clients config
 	config := client.Config{
-		ApigeeBaseURL: apigeeBaseURL,
-		Username:      username,
-		Password:      password,
-		AccountNumber: accountNumber,
+		ApigeeBaseURL:  apigeeBaseURL,
+		ConsumerKey:    consumerKey,
+		ConsumerSecret: consumerSecret,
+		AccountNumber:  accountNumber,
 	}
 	return config.LumenClients()
 }
