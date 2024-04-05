@@ -3,11 +3,12 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type HttpResponses []HttpResponse
@@ -40,7 +41,7 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 			assert.Contains(t, req.Header.Get("Authorization"), "Basic")
 			assert.Equal(t, "application/json", req.Header.Get("Accept"))
 			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
-			assert.Equal(t, "lumen-terraform-plugin v2.1.1", req.Header.Get("User-Agent"))
+			assert.Equal(t, "lumen-terraform-plugin v2.2.0", req.Header.Get("User-Agent"))
 
 			response = apigeeResponses[0]
 			if len(apigeeResponses) > 1 {

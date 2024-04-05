@@ -9,17 +9,17 @@ type Clients struct {
 }
 
 type Config struct {
-	ApigeeBaseURL string
-	Username      string
-	Password      string
-	AccountNumber string
-	clients       *Clients
+	ApigeeBaseURL  string
+	ConsumerKey    string
+	ConsumerSecret string
+	AccountNumber  string
+	clients        *Clients
 }
 
 func (c *Config) LumenClients() (*Clients, diag.Diagnostics) {
 	if c.clients == nil {
 		c.clients = &Clients{
-			BareMetal: NewBareMetalClient(c.ApigeeBaseURL, c.Username, c.Password, c.AccountNumber),
+			BareMetal: NewBareMetalClient(c.ApigeeBaseURL, c.ConsumerKey, c.ConsumerSecret, c.AccountNumber),
 		}
 	}
 	return c.clients, nil

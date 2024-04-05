@@ -33,16 +33,7 @@ output "network_sizes" {
 
 ## Terraform Input Variables
 ### Required
-- username "Lumen username"
-- password "Lumen password"
+- consumer_key "Consumer key"
+- consumer_secret "Consumer secret"
 - account_number "Customer Account Number"
 - location_id "The id of a location"
-
-### Example usage
-`terraform.tfvars`
-```hcl
-username = $lumen_username
-password = $lumen_password
-account_number = $account_number
-location_id = $location_id
-```

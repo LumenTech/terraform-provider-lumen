@@ -2,15 +2,15 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "2.1.1"
+      version = "2.2.0"
     }
   }
 }
 
 provider "lumen" {
-  username = var.username
-  password = var.password
-  account_number = var.accountNumber
+  consumer_key = var.consumer_key
+  consumer_secret = var.consumer_secret
+  account_number = var.account_number
 }
 
 data "lumen_bare_metal_os_images" "os_images" {

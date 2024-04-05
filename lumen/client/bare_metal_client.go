@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"strconv"
 	"strings"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 var retryCount = 5
@@ -16,19 +17,19 @@ var retryWaitTime = 1 * time.Second
 var retryMaxWaitTime = 30 * time.Second
 
 type BareMetalClient struct {
-	URL                string
-	ApigeeAuthEndpoint string
-	ApigeeUsername     string
-	ApigeePassword     string
-	ApigeeToken        string
-	ExpireTime         int64
-	AccountNumber      string
-	defaultClient      *resty.Client
+	URL                  string
+	ApigeeAuthEndpoint   string
+	ApigeeConsumerKey    string
+	ApigeeConsumerSecret string
+	ApigeeToken          string
+	ExpireTime           int64
+	AccountNumber        string
+	defaultClient        *resty.Client
 }
 
-func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string) *BareMetalClient {
+func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.1.1")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.2.0")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
@@ -37,12 +38,12 @@ func NewBareMetalClient(apigeeBaseURL, username, password, accountNumber string)
 		return err != nil || response.StatusCode() == 429 || response.StatusCode() >= 500
 	})
 	return &BareMetalClient{
-		URL:                fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
-		ApigeeAuthEndpoint: fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
-		ApigeeUsername:     username,
-		ApigeePassword:     password,
-		AccountNumber:      accountNumber,
-		defaultClient:      client,
+		URL:                  fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
+		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
+		ApigeeConsumerKey:    consumerKey,
+		ApigeeConsumerSecret: consumerSecret,
+		AccountNumber:        accountNumber,
+		defaultClient:        client,
 	}
 }
 
@@ -276,7 +277,7 @@ func (bm *BareMetalClient) refreshApigeeToken() error {
 	expireTime := time.UnixMilli(bm.ExpireTime - 60000)
 	if len(bm.ApigeeToken) == 0 || time.Now().After(expireTime) {
 		resp, err := bm.defaultClient.R().
-			SetBasicAuth(bm.ApigeeUsername, bm.ApigeePassword).
+			SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
 			SetHeader("Accept", "application/json").
 			SetFormData(map[string]string{
 				"grant_type": "client_credentials",

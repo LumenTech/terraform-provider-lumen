@@ -26,14 +26,6 @@ output "locations" {
 
 ## Terraform Input Variables
 ### Required
-- username "Lumen username"
-- password "Lumen password"
+- consumer_key "Consumer key"
+- consumer_secret "Consumer secret"
 - account_number "Customer Account Number"
-
-### Example usage
-`terraform.tfvars`
-```hcl
-username = $lumen_username
-password = $lumen_password
-account_number = $account_number
-```
