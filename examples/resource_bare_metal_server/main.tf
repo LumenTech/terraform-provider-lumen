@@ -2,7 +2,7 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "2.2.0"
+      version = "2.3.0"
     }
   }
 }
@@ -45,6 +45,18 @@ resource "lumen_bare_metal_server" "server2" {
   password = "**********"
 }
 
+resource "lumen_bare_metal_server" "server3" {
+  #  Example server provisioning request with hyperthreading true/false
+  name = "BASTION02"
+  location_id = "DNVTCO56LEC"
+  configuration_name = "small_plus"
+  os_image_name = "Ubuntu 20.04"
+  network_size_id = "64ef800284b3f203bc27f9e2"
+  enable_hyperthreading = true # or false
+  username = "admin"
+  password = "**********"
+}
+
 output "server" {
   sensitive = true
   value = lumen_bare_metal_server.server
@@ -55,4 +67,10 @@ output "server2" {
   sensitive = true
   value = lumen_bare_metal_server.server2
   description = "Server with multiple attached networks"
+}
+
+output "server3" {
+  sensitive = true
+  value = lumen_bare_metal_server.server3
+  description = "Server with hyperthreading enabled/disabled"
 }

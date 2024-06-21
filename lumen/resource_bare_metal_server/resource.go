@@ -279,6 +279,17 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"hyperthreading": {
+				Type:        schema.TypeBool,
+				Description: "Server hyperthreading status.",
+				Computed:    true,
+			},
+			"enable_hyperthreading": {
+				Type:        schema.TypeBool,
+				Description: "User parameter to enable hyperthreading on the server. Defaults to true if not set.",
+				Optional:    true,
+				Default:     true,
+			},
 		},
 	}
 }

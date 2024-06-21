@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"time"
+
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -29,7 +30,7 @@ type BareMetalClient struct {
 
 func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.2.0")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.3.0")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)

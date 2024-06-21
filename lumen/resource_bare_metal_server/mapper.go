@@ -53,4 +53,5 @@ func populateServerSchema(d *schema.ResourceData, server bare_metal.Server) {
 	d.Set("account_id", server.AccountID)
 	d.Set("created", server.Created)
 	d.Set("updated", server.Updated)
+	d.Set("hyperthreading", server.Hyperthreading)
 }

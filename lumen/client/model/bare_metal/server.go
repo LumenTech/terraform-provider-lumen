@@ -1,24 +1,25 @@
 package bare_metal
 
 type Server struct {
-	ID            string                   `json:"id"`
-	Name          string                   `json:"name"`
-	MachineID     string                   `json:"machineId"`
-	MachineName   string                   `json:"machineName"`
-	LocationID    string                   `json:"locationId"`
-	Location      string                   `json:"location"`
-	Configuration ServerConfiguration      `json:"configuration"`
-	OSImage       string                   `json:"osImage"`
-	Networks      []ServerNetwork          `json:"networks"`
-	Status        string                   `json:"status"`
-	StatusMessage string                   `json:"statusMessage"`
-	Disks         []map[string]interface{} `json:"disks"`
-	BootDisk      string                   `json:"bootDisk"`
-	ServiceID     string                   `json:"serviceId"`
-	Prices        []ComponentPrice         `json:"prices"`
-	AccountID     string                   `json:"accountId"`
-	Created       string                   `json:"created"`
-	Updated       string                   `json:"updated"`
+	ID             string                   `json:"id"`
+	Name           string                   `json:"name"`
+	MachineID      string                   `json:"machineId"`
+	MachineName    string                   `json:"machineName"`
+	LocationID     string                   `json:"locationId"`
+	Location       string                   `json:"location"`
+	Configuration  ServerConfiguration      `json:"configuration"`
+	OSImage        string                   `json:"osImage"`
+	Networks       []ServerNetwork          `json:"networks"`
+	Status         string                   `json:"status"`
+	StatusMessage  string                   `json:"statusMessage"`
+	Disks          []map[string]interface{} `json:"disks"`
+	BootDisk       string                   `json:"bootDisk"`
+	ServiceID      string                   `json:"serviceId"`
+	Prices         []ComponentPrice         `json:"prices"`
+	AccountID      string                   `json:"accountId"`
+	Created        string                   `json:"created"`
+	Updated        string                   `json:"updated"`
+	Hyperthreading bool                     `json:"hyperthreading"`
 }
 
 type ServerConfiguration struct {
@@ -58,6 +59,7 @@ type ServerProvisionRequest struct {
 	NetworkRequest    *NetworkProvisionRequest `json:"networkRequest,omitempty"`
 	Credentials       Credentials              `json:"credentials"`
 	AssignIPV6Address bool                     `json:"assignIpv6Address,omitempty"`
+	Hyperthreading    bool                     `json:"hyperthreading,omitempty"`
 }
 
 type Credentials struct {

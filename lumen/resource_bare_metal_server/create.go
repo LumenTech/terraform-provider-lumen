@@ -3,15 +3,16 @@ package resource_bare_metal_server
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/validation"
-	"time"
 )
 
 var createTimeout = schema.DefaultTimeout(90 * time.Minute)
@@ -30,6 +31,7 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			PublicKey: data.Get("ssh_public_key").(string),
 		},
 		AssignIPV6Address: data.Get("assign_ipv6_address").(bool),
+		Hyperthreading:    data.Get("enable_hyperthreading").(bool),
 	}
 
 	attachNetworks := convertDataToAttachedNetworks(data.Get("attach_networks").([]interface{}))
