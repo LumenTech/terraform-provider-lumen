@@ -4,15 +4,15 @@
 
 ## Introduction
 This document provides details on the resource to create Lumen bare metal server(s). In order to create a bare metal 
-server, you can either provision a new network or use an existing network(s).If you are creating a new network you will 
-provide the network_size_id and network_name variables.  If you are using an existing network you will provide a list of 
-network IDs as the network_ids variable (the first network will be configured on the server all others will need manual 
-server configuration changes performed by the user).  After the server has been created we support the ability to change 
-the name, which only affects the data stored in our system, and add/remove networks through altering the network_ids 
-field. We currently only manage the configuration of our network infrastructure any changes to the networks will require
-server configuration changes performed by the user.  This is due to us not running an agent or having any access to the 
-host system.  If you provision a server where we created the network if you decide to add networks you will need to 
-remove the old fields and populate the network_ids list with your current network id.
+server, you can either provision a new network or use an existing network(s). If you are creating a new network you will 
+provide the network_size_id and network_name variables. If you are using an existing network you will provide a list of 
+network IDs in the attach_networks object (the first network will be configured on the server all others will need manual 
+server configuration changes performed by the user). After the server has been created we support the ability to change 
+the name, which only affects the data stored in our system, and add/remove networks through altering the attach_networks 
+field. We currently only manage the configuration of our network infrastructure. Any changes to the networks will require
+server configuration changes performed by the user. This is due to us not running an agent or having any access to the 
+host system. If you provision a server where we created the network if you decide to add networks you will need to 
+remove the old fields and populate the attach_networks object with your current network id.
 
 ## Example Usage
 `main.tf`
@@ -35,11 +35,16 @@ resource "lumen_bare_metal_server" "server2" {
   location_id = "DNVTCO56LEC"
   configuration_name = "small_plus"
   os_image_name = "Ubuntu 20.04"
-  network_ids = [
-  "65526f96861724132e81b952",
-  "6553dc0d861724132e81ce42",
-  "6553dc22861724132e81ce43"
-  ]
+  attach_networks {
+    network_id = "65c283e988f85707cc53b308"
+    assign_ipv6_address = true
+  }
+  attach_networks {
+    network_id = "6553dc0d861724132e81ce42"
+  }
+  attach_networks {
+    network_id = "6553dc22861724132e81ce43"
+  }
   username = "admin"
   password = "**********"
 }
