@@ -44,7 +44,7 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "2.3.0"
+      version = "2.3.5"
     }
   }
 }
