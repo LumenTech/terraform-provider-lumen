@@ -81,9 +81,6 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				ConflictsWith: []string{
 					"attach_networks",
 				},
-				RequiredWith: []string{
-					"network_size_id",
-				},
 				ExactlyOneOf: []string{
 					"attach_networks",
 				},
@@ -104,6 +101,30 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "INTERNET",
+			},
+			"vrf": {
+				Description: "For private networks, this is an existing VRF to be used in creating the new network.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ConflictsWith: []string{
+					"attach_networks",
+					"vrf_description",
+				},
+				RequiredWith: []string{
+					"network_name",
+				},
+			},
+			"vrf_description": {
+				Description: "For private networks, create a new VRF with this description and use it in creating the new network.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ConflictsWith: []string{
+					"attach_networks",
+					"vrf",
+				},
+				RequiredWith: []string{
+					"network_name",
+				},
 			},
 			"username": {
 				Type:      schema.TypeString,

@@ -43,10 +43,12 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		provisionRequest.AssignIPV6Address = attachNetworks[0].AssignIPV6
 	} else {
 		provisionRequest.NetworkRequest = &bare_metal.NetworkProvisionRequest{
-			Name:          data.Get("network_name").(string),
-			LocationID:    provisionRequest.LocationID,
-			NetworkSizeID: data.Get("network_size_id").(string),
-			NetworkType:   data.Get("network_type").(string),
+			Name:           data.Get("network_name").(string),
+			LocationID:     provisionRequest.LocationID,
+			NetworkSizeID:  data.Get("network_size_id").(string),
+			NetworkType:    data.Get("network_type").(string),
+			VRF:            data.Get("vrf").(string),
+			VRFDescription: data.Get("vrf_description").(string),
 		}
 	}
 

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = "2.3.5"
+      version = ">= 2.4.0"
     }
   }
 }
@@ -57,6 +57,19 @@ resource "lumen_bare_metal_server" "server3" {
   password = "**********"
 }
 
+resource "lumen_bare_metal_server" "server4" {
+  #  Example request data with a new private network using a new VRF
+  name = "BASTION01"
+  location_id = "DNVTCO56LEC"
+  configuration_name = "small_plus"
+  os_image_name = "Ubuntu 20.04"
+  network_name = "bastion-network"
+  network_type = "PRIVATE"
+  vrf_description = "testVPE"
+  username = "admin"
+  password = "**********"
+}
+
 output "server" {
   sensitive = true
   value = lumen_bare_metal_server.server
@@ -73,4 +86,10 @@ output "server3" {
   sensitive = true
   value = lumen_bare_metal_server.server3
   description = "Server with hyperthreading enabled/disabled"
+}
+
+output "server4" {
+  sensitive = true
+  value = lumen_bare_metal_server.server3
+  description = "Server with attached private network"
 }
