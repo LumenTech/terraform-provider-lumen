@@ -30,10 +30,12 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			client := i.(*client2.Clients).BareMetal
 
 			provisionRequest := bare_metal.NetworkProvisionRequest{
-				Name:          data.Get("name").(string),
-				LocationID:    data.Get("location_id").(string),
-				NetworkSizeID: data.Get("network_size_id").(string),
-				NetworkType:   data.Get("network_type").(string),
+				Name:           data.Get("name").(string),
+				LocationID:     data.Get("location_id").(string),
+				NetworkSizeID:  data.Get("network_size_id").(string),
+				NetworkType:    data.Get("network_type").(string),
+				VRF:            data.Get("vrf").(string),
+				VRFDescription: data.Get("vrf_description").(string),
 			}
 
 			network, err := client.ProvisionNetwork(provisionRequest)
@@ -170,7 +172,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			},
 			"network_size_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"network_type": {
@@ -178,6 +180,24 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				Optional: true,
 				Default:  "INTERNET",
 				ForceNew: true,
+			},
+			"vrf": {
+				Description: "For private networks, this is an existing VRF to be used in creating the new network.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				ConflictsWith: []string{
+					"vrf_description",
+				},
+			},
+			"vrf_description": {
+				Description: "For private networks, create a new VRF with this description and use it in creating the new network.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				ConflictsWith: []string{
+					"vrf",
+				},
 			},
 			"id": {
 				Type:     schema.TypeString,
@@ -223,6 +243,14 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"vrf_value": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"vrf_description_value": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"prices": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -264,6 +292,8 @@ func populateNetworkSchema(d *schema.ResourceData, network bare_metal.Network) {
 	d.Set("total_ips", network.TotalIPs)
 	d.Set("type", network.Type)
 	d.Set("status", network.Status)
+	d.Set("vrf_value", network.VRF)
+	d.Set("vrf_description_value", network.VRFDescription)
 	prices := make([]map[string]interface{}, len(network.Prices))
 	for i, price := range network.Prices {
 		prices[i] = map[string]interface{}{
