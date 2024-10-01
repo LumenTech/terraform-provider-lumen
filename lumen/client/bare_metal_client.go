@@ -40,7 +40,7 @@ func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumbe
 	})
 	return &BareMetalClient{
 		URL:                  fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
-		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
+		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/v2/token", apigeeBaseURL),
 		ApigeeConsumerKey:    consumerKey,
 		ApigeeConsumerSecret: consumerSecret,
 		AccountNumber:        accountNumber,
