@@ -281,12 +281,11 @@ func (bm *BareMetalClient) execute(method, url string, body interface{}, result 
 func (bm *BareMetalClient) refreshApigeeToken() error {
 	expireTime := time.UnixMilli(bm.ExpireTime - 60000)
 	if len(bm.ApigeeToken) == 0 || time.Now().After(expireTime) {
-		var authEndpoint string
-		if bm.V2AuthSuccess {
-			authEndpoint = bm.ApigeeAuthV2Endpoint
-		} else {
+		authEndpoint := bm.ApigeeAuthV2Endpoint
+		if !bm.V2AuthSuccess {
 			authEndpoint = bm.ApigeeAuthEndpoint
 		}
+
 		resp, err := bm.defaultClient.R().
 			SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
 			SetHeader("Accept", "application/json").
@@ -295,18 +294,13 @@ func (bm *BareMetalClient) refreshApigeeToken() error {
 			}).Post(authEndpoint)
 
 		if err != nil || !resp.IsSuccess() {
-			bm.V2AuthSuccess = !bm.V2AuthSuccess
-			if authEndpoint == bm.ApigeeAuthV2Endpoint {
-				authEndpoint = bm.ApigeeAuthEndpoint
-			} else {
-				authEndpoint = bm.ApigeeAuthV2Endpoint
-			}
+			bm.V2AuthSuccess = false
 			resp, err = bm.defaultClient.R().
 				SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
 				SetHeader("Accept", "application/json").
 				SetFormData(map[string]string{
 					"grant_type": "client_credentials",
-				}).Post(authEndpoint)
+				}).Post(bm.ApigeeAuthEndpoint)
 			if err != nil || !resp.IsSuccess() {
 				return errors.New("apigee authentication failure")
 			}
