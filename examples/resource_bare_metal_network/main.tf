@@ -22,7 +22,7 @@ resource "lumen_bare_metal_network" "network" {
 }
 
 resource "lumen_bare_metal_network" "network2" {
-  # Create a private network with an existing VRF
+  #  Create a private network with an existing VRF
   name = "testNetwork6"
   location_id = "DNVTCO56LEC"
   network_type = "PRIVATE"
@@ -30,7 +30,7 @@ resource "lumen_bare_metal_network" "network2" {
 }
 
 resource "lumen_bare_metal_network" "network3" {
-  # Create a private network with a new VRF
+  #  Create a private network with a new VRF
   name = "testNetwork7"
   location_id = "DNVTCO56LEC"
   network_type = "PRIVATE"
