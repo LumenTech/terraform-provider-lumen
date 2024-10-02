@@ -21,6 +21,7 @@ type BareMetalClient struct {
 	URL                  string
 	ApigeeAuthEndpoint   string
 	ApigeeAuthV2Endpoint string
+	V2AuthSuccess        bool
 	ApigeeConsumerKey    string
 	ApigeeConsumerSecret string
 	ApigeeToken          string
@@ -43,6 +44,7 @@ func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumbe
 		URL:                  fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
 		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
 		ApigeeAuthV2Endpoint: fmt.Sprintf("%s/oauth/v2/token", apigeeBaseURL),
+		V2AuthSuccess:        true,
 		ApigeeConsumerKey:    consumerKey,
 		ApigeeConsumerSecret: consumerSecret,
 		AccountNumber:        accountNumber,
@@ -279,20 +281,32 @@ func (bm *BareMetalClient) execute(method, url string, body interface{}, result 
 func (bm *BareMetalClient) refreshApigeeToken() error {
 	expireTime := time.UnixMilli(bm.ExpireTime - 60000)
 	if len(bm.ApigeeToken) == 0 || time.Now().After(expireTime) {
+		var authEndpoint string
+		if bm.V2AuthSuccess {
+			authEndpoint = bm.ApigeeAuthV2Endpoint
+		} else {
+			authEndpoint = bm.ApigeeAuthEndpoint
+		}
 		resp, err := bm.defaultClient.R().
 			SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
 			SetHeader("Accept", "application/json").
 			SetFormData(map[string]string{
 				"grant_type": "client_credentials",
-			}).Post(bm.ApigeeAuthEndpoint)
+			}).Post(authEndpoint)
 
 		if err != nil || !resp.IsSuccess() {
+			bm.V2AuthSuccess = !bm.V2AuthSuccess
+			if authEndpoint == bm.ApigeeAuthV2Endpoint {
+				authEndpoint = bm.ApigeeAuthEndpoint
+			} else {
+				authEndpoint = bm.ApigeeAuthV2Endpoint
+			}
 			resp, err = bm.defaultClient.R().
 				SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
 				SetHeader("Accept", "application/json").
 				SetFormData(map[string]string{
 					"grant_type": "client_credentials",
-				}).Post(bm.ApigeeAuthV2Endpoint)
+				}).Post(authEndpoint)
 			if err != nil || !resp.IsSuccess() {
 				return errors.New("apigee authentication failure")
 			}
