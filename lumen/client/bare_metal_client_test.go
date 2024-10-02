@@ -35,13 +35,13 @@ func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse HttpResp
 func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int, apiResponses HttpResponses) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var response HttpResponse
-		if req.RequestURI == "/oauth/token" {
+		if req.RequestURI == "/oauth/token" || req.RequestURI == "/oauth/v2/token" {
 			*apigeeCallCount++
 			assert.Equal(t, "POST", req.Method)
 			assert.Contains(t, req.Header.Get("Authorization"), "Basic")
 			assert.Equal(t, "application/json", req.Header.Get("Accept"))
 			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
-			assert.Equal(t, "lumen-terraform-plugin v2.4.0", req.Header.Get("User-Agent"))
+			assert.Equal(t, "lumen-terraform-plugin v2.5.0", req.Header.Get("User-Agent"))
 
 			response = apigeeResponses[0]
 			if len(apigeeResponses) > 1 {
@@ -148,7 +148,7 @@ func TestRefreshToken_RetryableClient(t *testing.T) {
 
 	err := client.refreshApigeeToken()
 	assert.NotNil(t, err)
-	assert.Equal(t, apigeeCallCount, 5)
+	assert.Equal(t, apigeeCallCount, 10)
 }
 
 func TestGetLocations(t *testing.T) {

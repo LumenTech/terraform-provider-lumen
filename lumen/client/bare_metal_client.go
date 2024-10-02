@@ -20,6 +20,7 @@ var retryMaxWaitTime = 30 * time.Second
 type BareMetalClient struct {
 	URL                  string
 	ApigeeAuthEndpoint   string
+	ApigeeAuthV2Endpoint string
 	ApigeeConsumerKey    string
 	ApigeeConsumerSecret string
 	ApigeeToken          string
@@ -30,7 +31,7 @@ type BareMetalClient struct {
 
 func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.4.0")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.5.0")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
@@ -40,7 +41,8 @@ func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumbe
 	})
 	return &BareMetalClient{
 		URL:                  fmt.Sprintf("%s/EdgeServices/v2/Compute/bareMetal", apigeeBaseURL),
-		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/v2/token", apigeeBaseURL),
+		ApigeeAuthEndpoint:   fmt.Sprintf("%s/oauth/token", apigeeBaseURL),
+		ApigeeAuthV2Endpoint: fmt.Sprintf("%s/oauth/v2/token", apigeeBaseURL),
 		ApigeeConsumerKey:    consumerKey,
 		ApigeeConsumerSecret: consumerSecret,
 		AccountNumber:        accountNumber,
@@ -285,7 +287,15 @@ func (bm *BareMetalClient) refreshApigeeToken() error {
 			}).Post(bm.ApigeeAuthEndpoint)
 
 		if err != nil || !resp.IsSuccess() {
-			return errors.New("apigee authentication failure")
+			resp, err = bm.defaultClient.R().
+				SetBasicAuth(bm.ApigeeConsumerKey, bm.ApigeeConsumerSecret).
+				SetHeader("Accept", "application/json").
+				SetFormData(map[string]string{
+					"grant_type": "client_credentials",
+				}).Post(bm.ApigeeAuthV2Endpoint)
+			if err != nil || !resp.IsSuccess() {
+				return errors.New("apigee authentication failure")
+			}
 		}
 
 		var data map[string]interface{}
