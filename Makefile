@@ -4,7 +4,7 @@ HOSTNAME=lumen.com
 NAMESPACE=lumentech
 NAME=lumen
 BINARY=terraform-provider-${NAME}
-VERSION=2.4.0
+VERSION=2.5.0
 OS=$(shell go env GOOS)
 OS_ARCH=$(shell go env GOARCH)
 INSTALL_PATH=~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/linux_$(OS_ARCH)
@@ -27,6 +27,7 @@ build: tools
 
 release:
 	GOOS=darwin GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_darwin_amd64
+	GOOS=darwin GOARCH=arm64 go build -o ./bin/${BINARY}_${VERSION}_darwin_arm64
 	GOOS=freebsd GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_freebsd_386
 	GOOS=freebsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_freebsd_amd64
 	GOOS=freebsd GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_freebsd_arm
