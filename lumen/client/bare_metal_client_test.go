@@ -16,6 +16,7 @@ type HttpResponses []HttpResponse
 type HttpResponse struct {
 	StatusCode int
 	Body       interface{}
+	Headers    map[string]string
 }
 
 func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse HttpResponses) (*httptest.Server, *int) {
@@ -61,6 +62,13 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+		if response.Headers != nil {
+			for k, v := range response.Headers {
+				fmt.Printf("Iterating to add response headers %s: %s", k, v)
+				w.Header().Set(k, v)
+			}
+		}
+
 		w.WriteHeader(response.StatusCode)
 		if response.Body != nil {
 			_ = json.NewEncoder(w).Encode(response.Body)
@@ -171,9 +179,47 @@ func TestGetLocations(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	locations, err := client.GetLocations()
+	locations, diagnostics := client.GetLocations()
 	deref := *locations
-	assert.Nil(t, err)
+	assert.Empty(t, diagnostics)
+	assert.Equal(t, 1, *apigeeCallCount)
+	assert.Equal(t, 1, len(deref))
+
+	location := deref[0]
+	assert.Equal(t, responseBody[0]["id"], location.ID)
+	assert.Equal(t, responseBody[0]["name"], location.Name)
+	assert.Equal(t, responseBody[0]["status"], location.Status)
+	assert.Equal(t, responseBody[0]["region"], location.Region)
+}
+
+func TestGetLocationsDeprecationHeaders(t *testing.T) {
+	responseBody := []map[string]interface{}{
+		{
+			"id":     "test-id",
+			"name":   "Test Site",
+			"status": "Test Status",
+			"region": "NA",
+		},
+	}
+	apiResponses := HttpResponses{
+		{
+			StatusCode: 200,
+			Body:       responseBody,
+			Headers: map[string]string{
+				"Deprecation": "true",
+				"Sunset":      "2023-01-31T15:12:18Z",
+			},
+		},
+	}
+	testServer, apigeeCallCount := setupTestServerWithDefaultApigeeResponse(t, apiResponses)
+	defer testServer.Close()
+
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	locations, diagnostics := client.GetLocations()
+	deref := *locations
+	assert.Equal(t, 1, len(diagnostics))
+	assert.Contains(t, diagnostics[0].Summary, "Deprecation: API Endpoint")
 	assert.Equal(t, 1, *apigeeCallCount)
 	assert.Equal(t, 1, len(deref))
 
@@ -214,9 +260,9 @@ func TestGetOsImages(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	osImages, err := client.GetOsImages("testLocation")
+	osImages, diagnostics := client.GetOsImages("testLocation")
 	deref := *osImages
-	assert.Nil(t, err)
+	assert.Empty(t, diagnostics)
 	assert.Equal(t, 1, *apigeeCallCount)
 	assert.Equal(t, 1, len(deref))
 
@@ -238,8 +284,8 @@ func TestGetServer_NotFound(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.GetServer("test-id")
-	assert.Nil(t, err)
+	server, diagnostics := client.GetServer("test-id")
+	assert.Empty(t, diagnostics)
 	assert.Nil(t, server)
 }
 
@@ -258,8 +304,9 @@ func TestGetServer_ServerError(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.GetServer("test-id")
-	assert.NotNil(t, err)
+	server, diagnostics := client.GetServer("test-id")
+	assert.NotEmpty(t, diagnostics)
+	assert.True(t, diagnostics.HasError())
 	assert.Nil(t, server)
 }
 
@@ -274,8 +321,8 @@ func TestDeleteServer_NotFoundResponse(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.DeleteServer("test-id")
-	assert.Nil(t, err)
+	server, diagnostics := client.DeleteServer("test-id")
+	assert.Empty(t, diagnostics)
 	assert.Nil(t, server)
 }
 
@@ -296,8 +343,8 @@ func TestDeleteServer_ConflictResponse(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.DeleteServer("test-id")
-	assert.Nil(t, err)
+	server, diagnostics := client.DeleteServer("test-id")
+	assert.Empty(t, diagnostics)
 	assert.NotNil(t, server)
 	assert.Equal(t, "releasing", server.Status)
 }
@@ -316,8 +363,8 @@ func TestDeleteServer_ConflictButServerNotFoundAfterPolling(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.DeleteServer("test-id")
-	assert.Nil(t, err)
+	server, diagnostics := client.DeleteServer("test-id")
+	assert.Empty(t, diagnostics)
 	assert.Nil(t, server)
 }
 
@@ -338,8 +385,8 @@ func TestDeleteServer_ConflictButServerInFailedStatus(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	server, err := client.DeleteServer("test-id")
-	assert.NotNil(t, err)
+	server, diagnostics := client.DeleteServer("test-id")
+	assert.NotEmpty(t, diagnostics)
 	assert.NotNil(t, server)
 	assert.Equal(t, "failed", server.Status)
 }
