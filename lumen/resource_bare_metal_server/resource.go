@@ -265,8 +265,9 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				Computed: true,
 			},
 			"boot_disk": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Deprecated with BMC API version 2",
 			},
 			"service_id": {
 				Type:     schema.TypeString,
