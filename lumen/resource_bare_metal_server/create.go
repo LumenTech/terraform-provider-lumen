@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"terraform-provider-lumen/lumen/helper"
 	"time"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -52,9 +53,9 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		}
 	}
 
-	server, errorDiagnostics := createServerAndWaitForCompletion(ctx, bmClient, provisionRequest)
-	if errorDiagnostics != nil {
-		return errorDiagnostics
+	server, diagnostics := createServerAndWaitForCompletion(ctx, bmClient, provisionRequest)
+	if diagnostics.HasError() {
+		return diagnostics
 	}
 	data.SetId(server.ID)
 	populateServerSchema(data, *server)
@@ -64,10 +65,10 @@ func createContext(ctx context.Context, data *schema.ResourceData, i interface{}
 		if refreshServer != nil {
 			populateServerSchema(data, *refreshServer)
 		}
-		return networkDiagnostics
+		return append(diagnostics, networkDiagnostics...)
 	}
 
-	return nil
+	return diagnostics
 }
 
 var pendingServerStatuses = []string{"provisioning", "network_provisioned", "allocated", "configured", "unknown"}
@@ -75,18 +76,18 @@ var targetServerStatuses = []string{"provisioned"}
 var possibleServerStatus = append(append(pendingServerStatuses, targetServerStatuses...), "failed", "error")
 
 func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, diag.Diagnostics) {
-	server, err := bmClient.ProvisionServer(provisionRequest)
-	if err != nil {
-		return nil, diag.FromErr(err)
+	server, diagnostics := bmClient.ProvisionServer(provisionRequest)
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
 	stateChangeConf := &resource.StateChangeConf{
 		Pending: pendingServerStatuses,
 		Target:  targetServerStatuses,
 		Refresh: func() (interface{}, string, error) {
-			s, err := bmClient.GetServer(server.ID)
-			if err != nil {
-				return nil, "", err
+			s, getDiagnostics := bmClient.GetServer(server.ID)
+			if err := helper.ExtractDiagnosticErrorIfPresent(getDiagnostics); err != nil {
+				return nil, "", fmt.Errorf(err.Summary)
 			}
 
 			found := false
@@ -111,11 +112,14 @@ func createServerAndWaitForCompletion(ctx context.Context, bmClient *client.Bare
 	}
 	refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, append(diagnostics, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("error waiting for server (%s) to be provisioned: (%s)", server.ID, err.Error()),
+		})
 	}
 
 	serv := refreshResult.(bare_metal.Server)
-	return &serv, nil
+	return &serv, diagnostics
 }
 
 func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networks []bare_metal.AttachNetwork) (*bare_metal.Server, diag.Diagnostics) {
@@ -126,12 +130,12 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			NetworkId:         network.NetworkID,
 			AssignIPV6Address: network.AssignIPV6,
 		}
-		_, e := bmClient.AttachNetwork(serverId, addNetworkRequest)
-		if e != nil {
+		_, attachDiagnostics := bmClient.AttachNetwork(serverId, addNetworkRequest)
+		if err := helper.ExtractDiagnosticErrorIfPresent(attachDiagnostics); err != nil {
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity:      diag.Warning,
 				Summary:       fmt.Sprintf("Error attaching network %s", network.NetworkID),
-				Detail:        fmt.Sprintf("Network %s errored on attachment reason - %s", network.NetworkID, e),
+				Detail:        fmt.Sprintf("Network %s errored on attachment reason - %s", network.NetworkID, err.Summary),
 				AttributePath: cty.GetAttrPath("network_ids"),
 			})
 		} else {
@@ -145,9 +149,9 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 			Pending: []string{"provisioning"},
 			Target:  []string{"provisioned"},
 			Refresh: func() (interface{}, string, error) {
-				s, err := bmClient.GetServer(serverId)
-				if err != nil {
-					return nil, "", err
+				s, getDiagnostics := bmClient.GetServer(serverId)
+				if err := helper.ExtractDiagnosticErrorIfPresent(getDiagnostics); err != nil {
+					return nil, "", fmt.Errorf(err.Summary)
 				}
 
 				refreshServer = s
