@@ -10,6 +10,7 @@ import (
 	"strings"
 	client2 "terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
+	"terraform-provider-lumen/lumen/helper"
 	"time"
 )
 
@@ -38,18 +39,18 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				VRFDescription: data.Get("vrf_description").(string),
 			}
 
-			network, err := client.ProvisionNetwork(provisionRequest)
-			if err != nil {
-				return diag.FromErr(err)
+			network, diagnostics := client.ProvisionNetwork(provisionRequest)
+			if diagnostics.HasError() {
+				return diagnostics
 			}
 
 			stateChangeConf := &resource.StateChangeConf{
 				Pending: pendingNetworkStatuses,
 				Target:  targetNetworkStatuses,
 				Refresh: func() (interface{}, string, error) {
-					s, err := client.GetNetwork(network.ID)
-					if err != nil {
-						return nil, "", err
+					s, getDiagnostics := client.GetNetwork(network.ID)
+					if err := helper.ExtractDiagnosticErrorIfPresent(getDiagnostics); err != nil {
+						return nil, "", fmt.Errorf(err.Summary)
 					}
 
 					found := false
@@ -74,72 +75,77 @@ func ResourceBareMetalNetwork() *schema.Resource {
 			}
 			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
 			if err != nil {
-				return diag.FromErr(err)
+				return append(diagnostics, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  fmt.Sprintf("error waiting for network (%s) to be provisioned: %s", network.ID, err.Error()),
+				})
 			}
 
 			retNetwork := refreshResult.(bare_metal.Network)
 			data.SetId(retNetwork.ID)
 			populateNetworkSchema(data, retNetwork)
-			return nil
+			return diagnostics
 		},
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			client := i.(*client2.Clients).BareMetal
 
 			networkId := data.Id()
-			network, err := client.GetNetwork(networkId)
-			if err != nil {
-				return diag.FromErr(err)
+			network, diagnostics := client.GetNetwork(networkId)
+			if diagnostics.HasError() {
+				return diagnostics
 			}
 
 			if network == nil {
 				log.Printf("[DEBUG] Network %s was not found - removing from state!", networkId)
 				data.SetId("")
-				return nil
+			} else {
+				populateNetworkSchema(data, *network)
 			}
-
-			populateNetworkSchema(data, *network)
-			return nil
+			return diagnostics
 		},
 		DeleteContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			client := i.(*client2.Clients).BareMetal
 			networkId := data.Id()
-			network, err := client.DeleteNetwork(networkId)
-			if err != nil {
-				return diag.FromErr(err)
-			} else if network == nil {
-				data.SetId("")
-				return nil
+			network, diagnostics := client.DeleteNetwork(networkId)
+			if diagnostics.HasError() {
+				return diagnostics
 			}
 
-			stateChangeConf := &resource.StateChangeConf{
-				Pending: []string{"deleting"},
-				Target:  []string{"deleted"},
-				Refresh: func() (interface{}, string, error) {
-					n, e := client.GetNetwork(networkId)
-					if e != nil {
-						return nil, "", err
-					} else if n == nil {
-						n = network
-						n.Status = "deleted"
-					}
-					return *n, strings.ToLower(n.Status), nil
-				},
-				Timeout:      10 * time.Minute,
-				Delay:        30 * time.Second,
-				PollInterval: 30 * time.Second,
-			}
-			refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
-			if err != nil {
-				return diag.FromErr(err)
+			if network != nil {
+				stateChangeConf := &resource.StateChangeConf{
+					Pending: []string{"deleting"},
+					Target:  []string{"deleted"},
+					Refresh: func() (interface{}, string, error) {
+						n, getDiagnostics := client.GetNetwork(networkId)
+						if err := helper.ExtractDiagnosticErrorIfPresent(getDiagnostics); err != nil {
+							return nil, "", fmt.Errorf(err.Summary)
+						} else if n == nil {
+							n = network
+							n.Status = "deleted"
+						}
+						return *n, strings.ToLower(n.Status), nil
+					},
+					Timeout:      10 * time.Minute,
+					Delay:        30 * time.Second,
+					PollInterval: 30 * time.Second,
+				}
+				refreshResult, err := stateChangeConf.WaitForStateContext(ctx)
+				if err != nil {
+					return append(diagnostics, diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  fmt.Sprintf("error waiting for network (%s) to be deleted: %s", networkId, err.Error()),
+					})
+				}
+
+				fmt.Printf(
+					"[DEBUG] Deleted network (%s) final status (%s)",
+					networkId,
+					refreshResult.(bare_metal.Network).Status,
+				)
 			}
 
-			fmt.Printf(
-				"[DEBUG] Deleted network (%s) final status (%s)",
-				networkId,
-				refreshResult.(bare_metal.Network).Status,
-			)
 			data.SetId("")
-			return nil
+			return diagnostics
 		},
 		UpdateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			// Currently update can only be used for changing the network name
@@ -150,12 +156,11 @@ func ResourceBareMetalNetwork() *schema.Resource {
 				}
 
 				client := i.(*client2.Clients).BareMetal
-				network, err := client.UpdateNetwork(networkId, updateRequest)
-				if err != nil {
-					return diag.FromErr(err)
+				network, diagnostics := client.UpdateNetwork(networkId, updateRequest)
+				if !diagnostics.HasError() {
+					populateNetworkSchema(data, *network)
 				}
-
-				populateNetworkSchema(data, *network)
+				return diagnostics
 			}
 
 			return nil
