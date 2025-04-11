@@ -12,11 +12,15 @@ Lumen's terraform provider supports the following data sources and resources:
 
 ## Deprecation Notice
 Lumen Bare Metal API will be deprecating v2 endpoints which are directly tied with the version 2.X.X of the terraform provider.
-There will be a new v3 Lumen Bare Metal API which will be made available and it will use a new backend authentication.
-We will be release a 3.X.X version of the terraform provider which will target the new API version.  In order to upgrade
+There will be a new v3 Lumen Bare Metal API which will be made available, and it will use a new backend authentication.
+We will be releasing a 3.X.X version of the terraform provider which will target the new API version.  In order to upgrade
 to the 3.X.X version of terraform provider you will need to generate a new consumer_key and consumer_secret see 
 [authentication](./authentication.md).  As part of this deprecation process you will see warning messages when running 
 the provider once we have finalized on a Sunset date.
+
+Please use the correct provider based on the Consumer Key and Consumer Secret.
+Terraform 2.X.X targets Lumen Bare Metal API v2.
+Terraform 3.X.X will target Lumen Bare Metal API v3 with different authentication.
 
 ## Deprecated - Generate API Key for Lumen Provider
 Lumen Bare Metal users on the older backend API need to generate API token for authentication to use Lumen resources. 
