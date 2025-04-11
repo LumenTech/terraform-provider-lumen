@@ -64,7 +64,6 @@ func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCoun
 		w.Header().Set("Content-Type", "application/json")
 		if response.Headers != nil {
 			for k, v := range response.Headers {
-				fmt.Printf("Iterating to add response headers %s: %s", k, v)
 				w.Header().Set(k, v)
 			}
 		}
