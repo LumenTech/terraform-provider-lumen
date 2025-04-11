@@ -139,12 +139,8 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 			},
 			"password": {
 				Type:      schema.TypeString,
-				Optional:  true,
+				Required:  true,
 				Sensitive: true,
-				AtLeastOneOf: []string{
-					"password",
-					"ssh_public_key",
-				},
 				ValidateDiagFunc: func(i interface{}, path cty.Path) diag.Diagnostics {
 					if err := validation.ValidateBareMetalPassword(i.(string)); err != nil {
 						return diag.FromErr(err)
@@ -156,10 +152,6 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
-				AtLeastOneOf: []string{
-					"password",
-					"ssh_public_key",
-				},
 			},
 			"assign_ipv6_address": {
 				Description: `A boolean (true/false) value indicating whether or not to assign an IPv6 address 
@@ -265,8 +257,9 @@ for this server if using a dual stack network. Defaults to false if not set.`,
 				Computed: true,
 			},
 			"boot_disk": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Deprecated with BMC API version 2",
 			},
 			"service_id": {
 				Type:     schema.TypeString,

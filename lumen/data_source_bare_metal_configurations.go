@@ -2,6 +2,7 @@ package lumen
 
 import (
 	"context"
+	"fmt"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 
@@ -14,16 +15,19 @@ func DataSourceBareMetalConfigurations() *schema.Resource {
 		Description: "Provides a list of bare metal configurations at a specific location",
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			bmClient := i.(*client.Clients).BareMetal
-			configurations, err := bmClient.GetConfigurations(data.Get("location_id").(string))
-			if err != nil {
-				return diag.FromErr(err)
+			configurations, diagnostics := bmClient.GetConfigurations(data.Get("location_id").(string))
+			if diagnostics.HasError() {
+				return diagnostics
 			}
 
 			if err := data.Set("configurations", bare_metal.ConvertToListMap(*configurations)); err != nil {
-				return diag.FromErr(err)
+				return append(diagnostics, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  fmt.Sprintf("error setting configurations: %s", err.Error()),
+				})
 			}
 			data.SetId("configurations")
-			return nil
+			return diagnostics
 		},
 		Schema: map[string]*schema.Schema{
 			"location_id": {

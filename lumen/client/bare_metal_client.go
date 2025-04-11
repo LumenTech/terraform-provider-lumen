@@ -2,10 +2,11 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"strconv"
 	"strings"
+	"terraform-provider-lumen/lumen/helper"
 	"time"
 
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
@@ -32,7 +33,7 @@ type BareMetalClient struct {
 
 func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumber string) *BareMetalClient {
 	client := resty.New()
-	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.5.0")
+	client.SetHeader("User-Agent", "lumen-terraform-plugin v2.6.0")
 	client.SetHeader("x-billing-account-number", accountNumber)
 	client.SetRetryCount(retryCount)
 	client.SetRetryWaitTime(retryWaitTime)
@@ -52,42 +53,43 @@ func NewBareMetalClient(apigeeBaseURL, consumerKey, consumerSecret, accountNumbe
 	}
 }
 
-func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, error) {
+func (bm *BareMetalClient) GetLocations() (*[]bare_metal.Location, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/locations", bm.URL)
-	resp, err := bm.execute("GET", url, nil, []bare_metal.Location{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("GET", url, nil, []bare_metal.Location{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
-	return resp.Result().(*[]bare_metal.Location), nil
+	return resp.Result().(*[]bare_metal.Location), diagnostics
 }
 
-func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.Configuration, error) {
+func (bm *BareMetalClient) GetConfigurations(locationId string) (*[]bare_metal.Configuration, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/locations/%s/configurations", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, nil, []bare_metal.Configuration{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("GET", url, nil, []bare_metal.Configuration{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
-	return resp.Result().(*[]bare_metal.Configuration), nil
+	return resp.Result().(*[]bare_metal.Configuration), diagnostics
 }
 
-func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.NetworkSize, error) {
+func (bm *BareMetalClient) GetNetworkSizes(locationId string) (*[]bare_metal.NetworkSize, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/locations/%s/networkSizes", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, nil, []bare_metal.NetworkSize{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("GET", url, nil, []bare_metal.NetworkSize{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
-	return resp.Result().(*[]bare_metal.NetworkSize), nil
+	return resp.Result().(*[]bare_metal.NetworkSize), diagnostics
 }
 
-func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage, error) {
+func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/locations/%s/osImages", bm.URL, locationId)
-	resp, err := bm.execute("GET", url, nil, []bare_metal.OsImage{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("GET", url, nil, []bare_metal.OsImage{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
+
 	osImages := *resp.Result().(*[]bare_metal.OsImage)
 	retVal := make([]bare_metal.OsImage, 0)
 	for _, osImage := range osImages {
@@ -95,98 +97,102 @@ func (bm *BareMetalClient) GetOsImages(locationId string) (*[]bare_metal.OsImage
 			retVal = append(retVal, osImage)
 		}
 	}
-	return &retVal, nil
+	return &retVal, diagnostics
 }
 
-func (bm *BareMetalClient) GetServerByName(name string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) GetServerByName(name string) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers", bm.URL)
-	resp, err := bm.execute("GET", url, nil, []bare_metal.Server{})
-	if err != nil {
-		return nil, err
-	}
-
-	servers := resp.Result().(*[]bare_metal.Server)
-	for _, server := range *servers {
-		if server.Name == name {
-			return &server, nil
+	resp, diagnostics := bm.execute("GET", url, nil, []bare_metal.Server{})
+	if !diagnostics.HasError() {
+		servers := resp.Result().(*[]bare_metal.Server)
+		for _, server := range *servers {
+			if server.Name == name {
+				return &server, diagnostics
+			}
 		}
 	}
-	return nil, nil
+
+	return nil, diagnostics
 }
 
-func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) GetServer(id string) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, id)
-	resp, err := bm.execute("GET", url, nil, bare_metal.Server{})
-	if err != nil {
+	resp, diagnostics := bm.execute("GET", url, nil, bare_metal.Server{})
+	if diagnostics.HasError() {
 		if resp != nil && resp.StatusCode() == 404 {
-			return nil, nil
+			return nil, helper.ExtractDiagnosticWarnings(diagnostics)
 		}
-		return nil, err
+
+		return nil, diagnostics
 	}
 
-	return resp.Result().(*bare_metal.Server), nil
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
-func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) ProvisionServer(provisionRequest bare_metal.ServerProvisionRequest) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers", bm.URL)
-	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Server{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("POST", url, provisionRequest, bare_metal.Server{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Server), nil
+
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
-func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.ServerUpdateRequest) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) UpdateServer(serverId string, request bare_metal.ServerUpdateRequest) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
-	resp, err := bm.execute("PUT", url, request, bare_metal.Server{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("PUT", url, request, bare_metal.Server{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Server), nil
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
-func (bm *BareMetalClient) AttachNetwork(serverId string, request bare_metal.AddNetworkRequest) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) AttachNetwork(serverId string, request bare_metal.AddNetworkRequest) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers/%s/networks", bm.URL, serverId)
-	resp, err := bm.execute("POST", url, request, bare_metal.Server{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("POST", url, request, bare_metal.Server{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Server), nil
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
-func (bm *BareMetalClient) RemoveNetwork(serverId, networkId string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) RemoveNetwork(serverId, networkId string) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers/%s/networks/%s", bm.URL, serverId, networkId)
-	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
-	if err != nil {
+	resp, diagnostics := bm.execute("DELETE", url, nil, bare_metal.Server{})
+	if diagnostics.HasError() {
 		if resp != nil && resp.StatusCode() == 404 {
-			return nil, nil
+			return nil, helper.ExtractDiagnosticWarnings(diagnostics)
 		}
-
-		return nil, err
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Server), nil
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
 var deletingStatus = []string{"releasing", "billing_deactivated", "networking_removed", "released"}
 
-func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, error) {
+func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/servers/%s", bm.URL, serverId)
-	resp, err := bm.execute("DELETE", url, nil, bare_metal.Server{})
-	if err != nil && resp.StatusCode() != 404 && resp.StatusCode() != 409 {
-		return nil, err
+	resp, diagnostics := bm.execute("DELETE", url, nil, bare_metal.Server{})
+	if diagnostics.HasError() && resp.StatusCode() != 404 && resp.StatusCode() != 409 {
+		return nil, diagnostics
 	}
 
+	deleteWarnings := helper.ExtractDiagnosticWarnings(diagnostics)
 	if resp.StatusCode() == 404 {
-		return nil, nil
+		return nil, deleteWarnings
 	}
 
 	if resp.StatusCode() == 409 {
 		// if server returns 409 then it is in a transitioning status and could be in the process of deleting
-		server, getServerError := bm.GetServer(serverId)
-		if getServerError != nil {
-			return nil, fmt.Errorf("failed to retrieve server (%s) unable to figure out state", serverId)
+		server, getServerDiagnostics := bm.GetServer(serverId)
+		if getServerDiagnostics.HasError() {
+			return nil, append(deleteWarnings, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("failed to retrieve server (%s) unable to figure out state", serverId),
+			})
 		} else if server == nil {
-			return nil, nil
+			return nil, deleteWarnings
 		}
 
 		foundDeletingStatus := false
@@ -197,58 +203,61 @@ func (bm *BareMetalClient) DeleteServer(serverId string) (*bare_metal.Server, er
 		}
 
 		if foundDeletingStatus {
-			return server, nil
+			return server, deleteWarnings
 		}
 
-		return server, fmt.Errorf("failed to delete server (%s) due to pending change", serverId)
+		return server, append(deleteWarnings, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to delete server (%s) due to pending change", serverId),
+		})
 	}
 
-	return resp.Result().(*bare_metal.Server), nil
+	return resp.Result().(*bare_metal.Server), diagnostics
 }
 
-func (bm *BareMetalClient) GetNetwork(networkId string) (*bare_metal.Network, error) {
+func (bm *BareMetalClient) GetNetwork(networkId string) (*bare_metal.Network, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
-	resp, err := bm.execute("GET", url, nil, bare_metal.Network{})
-	if err != nil {
+	resp, diagnostics := bm.execute("GET", url, nil, bare_metal.Network{})
+	if diagnostics.HasError() {
 		if resp != nil && resp.StatusCode() == 404 {
-			return nil, nil
+			return nil, helper.ExtractDiagnosticWarnings(diagnostics)
 		}
-		return nil, err
+		return nil, diagnostics
 	}
 
-	return resp.Result().(*bare_metal.Network), nil
+	return resp.Result().(*bare_metal.Network), diagnostics
 }
 
-func (bm *BareMetalClient) ProvisionNetwork(provisionRequest bare_metal.NetworkProvisionRequest) (*bare_metal.Network, error) {
+func (bm *BareMetalClient) ProvisionNetwork(provisionRequest bare_metal.NetworkProvisionRequest) (*bare_metal.Network, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/networks", bm.URL)
-	resp, err := bm.execute("POST", url, provisionRequest, bare_metal.Network{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("POST", url, provisionRequest, bare_metal.Network{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Network), nil
+	return resp.Result().(*bare_metal.Network), diagnostics
 }
 
-func (bm *BareMetalClient) UpdateNetwork(networkId string, request bare_metal.NetworkUpdateRequest) (*bare_metal.Network, error) {
+func (bm *BareMetalClient) UpdateNetwork(networkId string, request bare_metal.NetworkUpdateRequest) (*bare_metal.Network, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
-	resp, err := bm.execute("PUT", url, request, bare_metal.Network{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("PUT", url, request, bare_metal.Network{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Network), nil
+	return resp.Result().(*bare_metal.Network), diagnostics
 }
 
-func (bm *BareMetalClient) DeleteNetwork(networkId string) (*bare_metal.Network, error) {
+func (bm *BareMetalClient) DeleteNetwork(networkId string) (*bare_metal.Network, diag.Diagnostics) {
 	url := fmt.Sprintf("%s/networks/%s", bm.URL, networkId)
-	resp, err := bm.execute("DELETE", url, nil, bare_metal.Network{})
-	if err != nil {
-		return nil, err
+	resp, diagnostics := bm.execute("DELETE", url, nil, bare_metal.Network{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
-	return resp.Result().(*bare_metal.Network), nil
+	return resp.Result().(*bare_metal.Network), diagnostics
 }
 
-func (bm *BareMetalClient) execute(method, url string, body interface{}, result interface{}) (*resty.Response, error) {
-	if err := bm.refreshApigeeToken(); err != nil {
-		return nil, err
+func (bm *BareMetalClient) execute(method, url string, body interface{}, result interface{}) (*resty.Response, diag.Diagnostics) {
+	if authErr := bm.refreshApigeeToken(); authErr != nil {
+		return nil, authErr
 	}
 
 	request := bm.defaultClient.R().
@@ -265,6 +274,7 @@ func (bm *BareMetalClient) execute(method, url string, body interface{}, result 
 	}
 
 	resp, err := request.Execute(method, url)
+	diagnostics := diag.Diagnostics{}
 	if err != nil || !resp.IsSuccess() {
 		var reason string
 		if err != nil {
@@ -272,13 +282,34 @@ func (bm *BareMetalClient) execute(method, url string, body interface{}, result 
 		} else {
 			reason = fmt.Sprintf("%s - %s", resp.Status(), resp.String())
 		}
-		err = fmt.Errorf("%s (%s) failures reason (%s)", method, url, reason)
+
+		diagnostics = append(diagnostics, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("%s (%s) failures reason (%s)", method, url, reason),
+		})
 	}
 
-	return resp, err
+	if resp != nil {
+		deprecation := resp.Header().Get("Deprecation")
+		if len(deprecation) > 0 && strings.ToLower(deprecation) == "true" {
+			sunset := resp.Header().Get("Sunset")
+			summary := fmt.Sprintf("Deprecation: API Endpoint (%s) is being deprecated the sunset date is (%s).", url, sunset)
+			link := resp.Header().Get("Link")
+			if len(link) > 0 {
+				summary += fmt.Sprintf(" For more information see link (%s).", link)
+			}
+
+			diagnostics = append(diagnostics, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  summary,
+			})
+		}
+	}
+
+	return resp, diagnostics
 }
 
-func (bm *BareMetalClient) refreshApigeeToken() error {
+func (bm *BareMetalClient) refreshApigeeToken() diag.Diagnostics {
 	expireTime := time.UnixMilli(bm.ExpireTime - 60000)
 	if len(bm.ApigeeToken) == 0 || time.Now().After(expireTime) {
 		authEndpoint := bm.ApigeeAuthV2Endpoint
@@ -302,13 +333,13 @@ func (bm *BareMetalClient) refreshApigeeToken() error {
 					"grant_type": "client_credentials",
 				}).Post(bm.ApigeeAuthEndpoint)
 			if err != nil || !resp.IsSuccess() {
-				return errors.New("apigee authentication failure")
+				return diag.Errorf("authentication failure")
 			}
 		}
 
 		var data map[string]interface{}
 		if jsonErr := json.Unmarshal(resp.Body(), &data); jsonErr != nil {
-			return fmt.Errorf("unable to parse apigee response: %s", jsonErr)
+			return diag.Errorf("unable to parse response from authentication endpoint: %s", jsonErr.Error())
 		}
 
 		bm.ApigeeToken = data["access_token"].(string)

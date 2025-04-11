@@ -107,6 +107,7 @@ output "server4" {
 - configuration_name (String) "A configuration name (can be retrieved with data_source_bare_metal_configurations)"
 - os_image_name (String) "A os image name (can be retrieved with data_source_bare_metal_os_images)"
 - username (String) "Username that should be created on the server"
+- password (String) "The password you wish to have associated with the user account"
 
 ### Conditionally Required
 #### attach_networks or (network_name, network_size_id) or (network_name, vrf) or (network_name, vrf_description)
@@ -115,14 +116,12 @@ output "server4" {
 - vrf (String) "For private networks, this is an existing VRF to be used in creating the new network."
 - vrf_description (String) "For private networks, create a new VRF with this description and use it in creating the new network."
 - attach_networks (List of Object) "List of existing networks to attach to the server being provisioned. (updatable)"
-#### at least one (password and ssh_public_key)
-- password (String) "The password you wish to have associated with the user account"
-- ssh_public_key (String) "The ssh public key you wish to have associated with the username"
 
 ### Optional
 - network_type (String) "The type of network being used. Three possible values: INTERNET, DUAL_STACK_INTERNET, and PRIVATE"
 - assign_ipv6_address (Boolean) "A boolean (true/false) value indicating whether to assign an IPv6 address
   for this server if using a dual stack network. Defaults to false if not set."
+- ssh_public_key (String) "The ssh public key you wish to have associated with the username"
 - enable_hyperthreading (Boolean) "A boolean (true/false) value indicating whether to enable or disable hyperthreading on the server. Two possible values: true and false, defaults to true if not set."
 
 ### Computed

@@ -2,6 +2,7 @@ package lumen
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
@@ -13,16 +14,19 @@ func DataSourceBareMetalOsImages() *schema.Resource {
 		Description: "Provides a list of available os images at a specific location",
 		ReadContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 			bmClient := i.(*client.Clients).BareMetal
-			osImages, err := bmClient.GetOsImages(data.Get("location_id").(string))
-			if err != nil {
-				return diag.FromErr(err)
+			osImages, diagnostics := bmClient.GetOsImages(data.Get("location_id").(string))
+			if diagnostics.HasError() {
+				return diagnostics
 			}
 
 			if err := data.Set("os_images", bare_metal.ConvertOSImagesToListMap(*osImages)); err != nil {
-				return diag.FromErr(err)
+				return append(diagnostics, diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  fmt.Sprintf("failed to set os_images: %s", err.Error()),
+				})
 			}
 			data.SetId("os_images")
-			return nil
+			return diagnostics
 		},
 		Schema: map[string]*schema.Schema{
 			"location_id": {

@@ -15,17 +15,17 @@ func readContext(ctx context.Context, data *schema.ResourceData, i interface{}) 
 	bmClient := i.(*client.Clients).BareMetal
 
 	serverId := data.Id()
-	server, err := bmClient.GetServer(serverId)
-	if err != nil {
-		return diag.FromErr(err)
+	server, diagnostics := bmClient.GetServer(serverId)
+	if diagnostics.HasError() {
+		return diagnostics
 	}
 
 	if server == nil {
 		log.Printf("[DEBUG] Bare metal server %s was not found - removing from state!", serverId)
 		data.SetId("")
-		return nil
+	} else {
+		populateServerSchema(data, *server)
 	}
 
-	populateServerSchema(data, *server)
-	return nil
+	return diagnostics
 }

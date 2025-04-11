@@ -2,11 +2,13 @@ package resource_bare_metal_server
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
 	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/helper"
 	"time"
 )
 
@@ -15,19 +17,22 @@ var deleteTimeout = schema.DefaultTimeout(30 * time.Minute)
 func deleteContext(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	bmClient := i.(*client.Clients).BareMetal
 	serverId := data.Id()
-	server, err := bmClient.DeleteServer(serverId)
-	if err != nil {
-		return diag.FromErr(err)
+	server, diagnostics := bmClient.DeleteServer(serverId)
+	if diagnostics.HasError() {
+		return diagnostics
 	}
 
 	if server != nil && strings.ToLower(server.Status) != "released" {
 		_, waitError := waitForServerDeletion(ctx, bmClient, serverId)
 		if waitError != nil {
-			return diag.FromErr(waitError)
+			return append(diagnostics, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  waitError.Error(),
+			})
 		}
 	}
 	data.SetId("")
-	return nil
+	return diagnostics
 }
 
 var deleteServerPendingStatus = []string{"releasing", "networking_removed", "unknown"}
@@ -39,9 +44,9 @@ func waitForServerDeletion(ctx context.Context, bmClient *client.BareMetalClient
 		Pending: deleteServerPendingStatus,
 		Target:  deleteServerTargetStatus,
 		Refresh: func() (interface{}, string, error) {
-			server, err := bmClient.GetServer(serverId)
-			if err != nil {
-				return nil, "", err
+			server, getDiagnostics := bmClient.GetServer(serverId)
+			if err := helper.ExtractDiagnosticErrorIfPresent(getDiagnostics); err != nil {
+				return nil, "", fmt.Errorf(err.Summary)
 			}
 
 			status := "unknown"

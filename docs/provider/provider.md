@@ -3,15 +3,15 @@
 | Lumen Terraform Provider | Details on Lumen's Terraform provider |
 
 ## Introduction
-This document outlines details on Lumen's Terraform provider. It walks through details on provider schema, and lumen provider data_source_order and resource_order that is offered by lumen terraform provider. Also details related to how to use lumen provider is mentioned.
+This document outlines details on Lumen's Terraform provider. It walks through details on provider schema, and lumen 
+provider data_source_order and resource_order that is offered by lumen terraform provider. 
+Also details related to how to use lumen provider is mentioned.
 
 ## Schema
 
 ### Required
 - consumer_key (String) "Lumen API consumer key for authentication"
 - consumer_secret (String) "Lumen API consumer secret of Lumen API user for authentication"
-
-### Optional
 - account_number (String) "Account number for this Lumen account"
 
 ## Data Sources
@@ -44,7 +44,7 @@ terraform {
   required_providers {
     lumen = {
       source = "LumenTech/lumen"
-      version = ">= 2.5.0"
+      version = ">= 2.6.0"
     }
   }
 }

@@ -23,9 +23,9 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			Name: data.Get("name").(string),
 		}
 
-		server, err := bmClient.UpdateServer(serverId, updateRequest)
-		if err != nil {
-			return diag.FromErr(err)
+		server, diagnostics := bmClient.UpdateServer(serverId, updateRequest)
+		if diagnostics.HasError() {
+			return diagnostics
 		}
 
 		populateServerSchema(data, *server)
@@ -37,9 +37,9 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 			return diag.FromErr(validationError)
 		}
 
-		server, err := bmClient.GetServer(serverId)
-		if err != nil {
-			return diag.FromErr(err)
+		server, getDiagnostics := bmClient.GetServer(serverId)
+		if getDiagnostics.HasError() {
+			return getDiagnostics
 		}
 		oldNetworks := convertNetworksToListOfAttachNetworks(server.Networks)
 
@@ -70,12 +70,19 @@ func updateContext(ctx context.Context, data *schema.ResourceData, i interface{}
 func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.BareMetalClient, serverId string, networks []bare_metal.AttachNetwork) (*bare_metal.Server, diag.Diagnostics) {
 	var networkDiagnostics diag.Diagnostics
 	for _, network := range networks {
-		_, e := bmClient.RemoveNetwork(serverId, network.NetworkID)
-		if e != nil {
+		_, diagnostics := bmClient.RemoveNetwork(serverId, network.NetworkID)
+		if diagnostics.HasError() {
+			reason := ""
+			for _, d := range diagnostics {
+				if d.Severity == diag.Error {
+					reason = d.Summary
+				}
+			}
+
 			networkDiagnostics = append(networkDiagnostics, diag.Diagnostic{
 				Severity: diag.Warning,
 				Summary:  fmt.Sprintf("Error detaching network %s", network.NetworkID),
-				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", network.NetworkID, e),
+				Detail:   fmt.Sprintf("Network %s errored on detachment reason - %s", network.NetworkID, reason),
 			})
 		}
 	}
@@ -85,9 +92,9 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 		Pending: []string{"detaching"},
 		Target:  []string{"detached"},
 		Refresh: func() (interface{}, string, error) {
-			s, err := bmClient.GetServer(serverId)
-			if err != nil {
-				return nil, "", err
+			s, getDiagnostics := bmClient.GetServer(serverId)
+			if getDiagnostics.HasError() {
+				return nil, "", fmt.Errorf("error getting server %s details", serverId)
 			}
 
 			refreshServer = s
