@@ -314,13 +314,35 @@ func (bm *BareMetalClient) refreshApigeeToken() diag.Diagnostics {
 			SetFormData(map[string]string{
 				"grant_type": "client_credentials",
 			}).Post(bm.ApigeeAuthV2Endpoint)
-		if err != nil {
-			return diag.Errorf("authentication failure - %s", err.Error())
+		if err != nil || resp == nil || helper.IsHttpServerError(resp.StatusCode()) {
+			var reason string
+			if err != nil {
+				reason = err.Error()
+			} else if resp != nil {
+				reason = resp.Status()
+				if len(resp.String()) > 0 {
+					reason += fmt.Sprintf(" - %s", resp.String())
+				}
+			}
+			return diag.Errorf("Authentication Failure: POST (%s) failure reason (%s)", bm.ApigeeAuthV2Endpoint, reason)
 		}
 
 		var data map[string]interface{}
 		if jsonErr := json.Unmarshal(resp.Body(), &data); jsonErr != nil {
 			return diag.Errorf("unable to parse response from authentication endpoint: %s", jsonErr.Error())
+		}
+		if helper.IsHttpClientError(resp.StatusCode()) {
+			clientErrorDiagnostic := diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Authentication Failure",
+			}
+			if reason := data["reason"]; reason != nil {
+				clientErrorDiagnostic.Summary += fmt.Sprintf(" - %s.", reason.(string))
+			}
+			if referenceError := data["referenceError"]; referenceError != nil {
+				clientErrorDiagnostic.Detail = fmt.Sprintf("Reference Documentation: %s.", referenceError.(string))
+			}
+			return diag.Diagnostics{clientErrorDiagnostic}
 		}
 
 		bm.ApigeeToken = data["access_token"].(string)
