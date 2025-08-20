@@ -36,13 +36,13 @@ func setupTestServerWithDefaultApigeeResponse(t *testing.T, apiResponse HttpResp
 func setupTestServer(t *testing.T, apigeeResponses HttpResponses, apigeeCallCount *int, apiResponses HttpResponses) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var response HttpResponse
-		if req.RequestURI == "/oauth/token" || req.RequestURI == "/oauth/v2/token" {
+		if req.RequestURI == "/oauth/v2/token" {
 			*apigeeCallCount++
 			assert.Equal(t, "POST", req.Method)
 			assert.Contains(t, req.Header.Get("Authorization"), "Basic")
 			assert.Equal(t, "application/json", req.Header.Get("Accept"))
 			assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
-			assert.Equal(t, "lumen-terraform-plugin v2.6.0", req.Header.Get("User-Agent"))
+			assert.Equal(t, "lumen-terraform-plugin v3.0.0", req.Header.Get("User-Agent"))
 
 			response = apigeeResponses[0]
 			if len(apigeeResponses) > 1 {
@@ -81,18 +81,18 @@ func TestRefreshToken_NotExpired(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	err := client.refreshApigeeToken()
-	assert.Nil(t, err)
-	assert.Equal(t, *apigeeCallCount, 1)
+	diagnostics := client.refreshApigeeToken()
+	assert.Empty(t, diagnostics)
+	assert.Equal(t, 1, *apigeeCallCount)
 
 	apigeeToken := client.ApigeeToken
 	expireTime := client.ExpireTime
 	assert.NotEmpty(t, apigeeToken)
 	assert.NotEmpty(t, expireTime)
 
-	err = client.refreshApigeeToken()
-	assert.Nil(t, err)
-	assert.Equal(t, *apigeeCallCount, 1)
+	diagnostics = client.refreshApigeeToken()
+	assert.Empty(t, diagnostics)
+	assert.Equal(t, 1, *apigeeCallCount)
 	assert.Equal(t, apigeeToken, client.ApigeeToken)
 	assert.Equal(t, expireTime, client.ExpireTime)
 }
@@ -125,19 +125,19 @@ func TestRefreshToken_ExpiredToken(t *testing.T) {
 
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
-	err := client.refreshApigeeToken()
-	assert.Nil(t, err)
-	assert.Equal(t, apigeeCallCount, 1)
+	diagnostics := client.refreshApigeeToken()
+	assert.Empty(t, diagnostics)
+	assert.Equal(t, 1, apigeeCallCount)
 
 	apigeeToken := client.ApigeeToken
 	assert.NotEmpty(t, apigeeToken)
 	expectedExpireTime := issuedAt + (expiresIn * 1000)
 	assert.Equal(t, expectedExpireTime, client.ExpireTime)
 
-	err = client.refreshApigeeToken()
-	assert.Nil(t, err)
+	diagnostics = client.refreshApigeeToken()
+	assert.Empty(t, diagnostics)
 	assert.NotEqual(t, apigeeToken, client.ApigeeToken)
-	assert.Equal(t, apigeeCallCount, 2)
+	assert.Equal(t, 2, apigeeCallCount)
 }
 
 func TestRefreshToken_RetryableClient(t *testing.T) {
@@ -153,9 +153,74 @@ func TestRefreshToken_RetryableClient(t *testing.T) {
 	retryMaxWaitTime = 1 * time.Second
 	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
 
+	diagnostics := client.refreshApigeeToken()
+	assert.NotEmpty(t, diagnostics)
+	assert.True(t, diagnostics.HasError())
+	assert.Equal(t, 5, apigeeCallCount)
+	errorDiagnostic := diagnostics[0]
+	assert.Equal(
+		t,
+		fmt.Sprintf("Authentication Failure: POST (%s/oauth/v2/token) failure reason (500 Internal Server Error)", testServer.URL),
+		errorDiagnostic.Summary,
+	)
+}
+
+func TestRefreshToken_ServerErrorWithData(t *testing.T) {
+	apigeeCallCount := 0
+	testServer := setupTestServer(t, HttpResponses{
+		{
+			StatusCode: 500,
+			Body: map[string]interface{}{
+				"error": "some data",
+			},
+		},
+	}, &apigeeCallCount, nil)
+	defer testServer.Close()
+
+	retryWaitTime = 1 * time.Second
+	retryMaxWaitTime = 1 * time.Second
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
+	diagnostics := client.refreshApigeeToken()
+	assert.NotEmpty(t, diagnostics)
+	assert.True(t, diagnostics.HasError())
+	assert.Equal(t, 5, apigeeCallCount)
+	errorDiagnostic := diagnostics[0]
+	assert.Equal(
+		t,
+		fmt.Sprintf("Authentication Failure: POST (%s/oauth/v2/token) failure reason (500 Internal Server Error - {\"error\":\"some data\"})", testServer.URL),
+		errorDiagnostic.Summary,
+	)
+}
+
+func TestRefreshToken_ClientError(t *testing.T) {
+	reason := "Provided credentials are invalid or expired"
+	referenceURL := "https//developer.lumen.com/using-oauth-20-access-lumen-apis"
+	apigeeCallCount := 0
+	testServer := setupTestServer(t, HttpResponses{
+		{
+			StatusCode: 401,
+			Body: map[string]interface{}{
+				"reason":         reason,
+				"message":        "000 -- somedata",
+				"referenceError": referenceURL,
+				"code":           "invalidCredentials",
+			},
+		},
+	}, &apigeeCallCount, nil)
+	defer testServer.Close()
+
+	retryWaitTime = 1 * time.Second
+	retryMaxWaitTime = 1 * time.Second
+	client := NewBareMetalClient(testServer.URL, "test_user", "test_password", "test_account")
+
 	err := client.refreshApigeeToken()
-	assert.NotNil(t, err)
-	assert.Equal(t, apigeeCallCount, 10)
+	assert.True(t, err.HasError())
+	assert.Equal(t, 1, len(err))
+	diagnostic := err[0]
+	assert.Equal(t, fmt.Sprintf("Authentication Failure - %s.", reason), diagnostic.Summary)
+	assert.Equal(t, fmt.Sprintf("Reference Documentation: %s.", referenceURL), diagnostic.Detail)
+	assert.Equal(t, 1, apigeeCallCount)
 }
 
 func TestGetLocations(t *testing.T) {
