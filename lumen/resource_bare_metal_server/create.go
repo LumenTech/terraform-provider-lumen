@@ -158,7 +158,7 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 				status := "provisioning"
 				for _, n := range s.Networks {
 					if n.NetworkID == networkId {
-						status = n.Status
+						status = strings.ToLower(n.Status)
 						break
 					}
 				}
