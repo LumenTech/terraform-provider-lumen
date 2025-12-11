@@ -2,16 +2,17 @@ package lumen
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"golang.org/x/net/context"
 	"log"
 	"strings"
 	client2 "terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/helper"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"golang.org/x/net/context"
 )
 
 var pendingNetworkStatuses = []string{"provisioning", "unknown"}
@@ -22,9 +23,9 @@ func ResourceBareMetalNetwork() *schema.Resource {
 	return &schema.Resource{
 		Description: "Provision lumen bare metal network",
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
 		},
 		CreateContext: func(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
@@ -69,7 +70,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 					}
 					return *s, strings.ToLower(s.Status), nil
 				},
-				Timeout:      10 * time.Minute,
+				Timeout:      30 * time.Minute,
 				Delay:        2 * time.Minute,
 				PollInterval: 30 * time.Second,
 			}
@@ -125,7 +126,7 @@ func ResourceBareMetalNetwork() *schema.Resource {
 						}
 						return *n, strings.ToLower(n.Status), nil
 					},
-					Timeout:      10 * time.Minute,
+					Timeout:      30 * time.Minute,
 					Delay:        30 * time.Second,
 					PollInterval: 30 * time.Second,
 				}

@@ -3,14 +3,15 @@ package resource_bare_metal_server
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"terraform-provider-lumen/lumen/client"
 	"terraform-provider-lumen/lumen/client/model/bare_metal"
 	"terraform-provider-lumen/lumen/validation"
 	"time"
+
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var updateTimeout = schema.DefaultTimeout(5 * time.Minute)
@@ -110,7 +111,7 @@ func detachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 
 			return s, status, nil
 		},
-		Timeout:      10 * time.Minute,
+		Timeout:      30 * time.Minute,
 		Delay:        30 * time.Second,
 		PollInterval: 30 * time.Second,
 	}
