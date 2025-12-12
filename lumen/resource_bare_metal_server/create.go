@@ -7,13 +7,14 @@ import (
 	"terraform-provider-lumen/lumen/helper"
 	"time"
 
+	"terraform-provider-lumen/lumen/client"
+	"terraform-provider-lumen/lumen/client/model/bare_metal"
+	"terraform-provider-lumen/lumen/validation"
+
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"terraform-provider-lumen/lumen/client"
-	"terraform-provider-lumen/lumen/client/model/bare_metal"
-	"terraform-provider-lumen/lumen/validation"
 )
 
 var createTimeout = schema.DefaultTimeout(90 * time.Minute)
@@ -165,7 +166,7 @@ func attachNetworksAndWaitForCompletion(ctx context.Context, bmClient *client.Ba
 
 				return s, status, nil
 			},
-			Timeout:      10 * time.Minute,
+			Timeout:      30 * time.Minute,
 			Delay:        30 * time.Second,
 			PollInterval: 30 * time.Second,
 		}
